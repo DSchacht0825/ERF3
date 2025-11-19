@@ -15,7 +15,7 @@ function Login({ onLogin }) {
 
     // Simple password check
     // In production, this would be an API call to verify credentials
-    const correctPassword = 'ERF3Admin2025'; // Will be moved to environment variable
+    const correctPassword = 'Vistaerf'; // Admin password
 
     if (password === correctPassword) {
       // Set authentication in localStorage
