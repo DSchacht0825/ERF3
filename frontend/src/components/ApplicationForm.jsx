@@ -318,13 +318,12 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Agency Tax ID/EIN *</label>
+                <label>Agency Tax ID/EIN</label>
                 <input
                   type="text"
                   name="agencyTaxId"
                   value={formData.agencyTaxId}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
             </div>
