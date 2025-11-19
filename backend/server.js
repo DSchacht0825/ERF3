@@ -1,10 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { sql } = require('@vercel/postgres');
+const { neon } = require('@neondatabase/serverless');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize Neon SQL client
+const sql = neon(process.env.DATABASE_URL);
 
 // Middleware
 app.use(cors());
@@ -160,8 +163,9 @@ async function initializeDatabase() {
 app.get('/api/health', async (req, res) => {
   try {
     await sql`SELECT 1`;
-    res.json({ status: 'OK', message: 'ERF3 API is running', database: 'connected' });
+    res.json({ status: 'OK', message: 'ERF3 API is running', database: 'connected (Neon)' });
   } catch (error) {
+    console.error('Database connection error:', error);
     res.json({ status: 'OK', message: 'ERF3 API is running', database: 'disconnected' });
   }
 });
@@ -233,14 +237,14 @@ app.post('/api/applications', async (req, res) => {
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
     const fieldNames = fields.join(', ');
 
-    const result = await sql.query(
+    const result = await sql(
       `INSERT INTO applications (${fieldNames})
        VALUES (${placeholders})
        RETURNING *`,
       values
     );
 
-    const newApplication = convertKeysToCamel(result.rows[0]);
+    const newApplication = convertKeysToCamel(result[0]);
     console.log('Application saved successfully');
 
     res.status(201).json(newApplication);
@@ -289,13 +293,13 @@ app.patch('/api/applications/:id/status', async (req, res) => {
     updateQuery += ` WHERE id = $${paramIndex} RETURNING *`;
     params.push(req.params.id);
 
-    const result = await sql.query(updateQuery, params);
+    const result = await sql(updateQuery, params);
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    const updatedApplication = convertKeysToCamel(result.rows[0]);
+    const updatedApplication = convertKeysToCamel(result[0]);
     res.json(updatedApplication);
   } catch (error) {
     console.error('Error updating application status:', error);
@@ -331,13 +335,13 @@ app.put('/api/applications/:id', async (req, res) => {
       RETURNING *
     `;
 
-    const result = await sql.query(updateQuery, params);
+    const result = await sql(updateQuery, params);
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    const updatedApplication = convertKeysToCamel(result.rows[0]);
+    const updatedApplication = convertKeysToCamel(result[0]);
     res.json(updatedApplication);
   } catch (error) {
     console.error('Error updating application:', error);
