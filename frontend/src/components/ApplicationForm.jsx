@@ -485,13 +485,12 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group full-width">
-                <label>Agency Coordination Plan with ERF3 *</label>
+                <label>Agency Coordination Plan with ERF3</label>
                 <textarea
                   name="agencyCoordination"
                   value={formData.agencyCoordination}
                   onChange={handleInputChange}
                   rows="3"
-                  required
                 />
               </div>
             </div>
