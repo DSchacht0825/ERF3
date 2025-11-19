@@ -26,11 +26,13 @@ A full-stack web application for managing ERF3 rental assistance grant applicati
 - ✅ Export to CSV with customizable fields
 
 ### Data Management
-- ✅ JSON-based data storage (simple, no database setup required)
+- ✅ PostgreSQL database (persistent, reliable, scalable)
+- ✅ Vercel Postgres integration
 - ✅ RESTful API for all operations
 - ✅ Automatic application ID generation
 - ✅ Timestamp tracking
 - ✅ Status history
+- ✅ JSONB for flexible data storage
 
 ## Project Structure
 
@@ -53,8 +55,7 @@ ERF3-website/
 │
 └── backend/                  # Node.js/Express API
     ├── server.js            # Main server file
-    ├── data/                # JSON data storage
-    │   └── applications.json
+    ├── schema.sql           # Database schema
     └── package.json
 ```
 
@@ -70,9 +71,10 @@ ERF3-website/
 **Backend:**
 - Node.js
 - Express.js
+- PostgreSQL (via @vercel/postgres)
 - CORS
-- UUID (unique ID generation)
-- JSON file storage
+- Body Parser
+- Vercel Serverless Functions
 
 ## Setup Instructions
 
@@ -176,47 +178,54 @@ git add .
 git commit -m "Initial commit: ERF3 Grant Funding Application System"
 ```
 
-## Database: JSON vs SQL
+## Database: PostgreSQL
 
-### Current Setup: **JSON File Storage (No SQL Required)**
+### Current Setup: **PostgreSQL via Vercel Postgres**
 
-The application currently uses **JSON files** for data storage:
+The application uses **PostgreSQL** for persistent, reliable data storage:
 
 **Advantages:**
-- ✅ No database installation required
-- ✅ Easy to backup (just copy the file)
-- ✅ Simple to understand and debug
-- ✅ Perfect for small to medium applications
-- ✅ Easy deployment (no database server needed)
+- ✅ Production-ready and scalable
+- ✅ Handles thousands of applications
+- ✅ ACID compliance (data integrity)
+- ✅ Complex queries and reporting
+- ✅ Automatic backups (via Vercel)
+- ✅ JSONB support for flexible fields
+- ✅ Built-in indexing for fast queries
 
-**Location:** `/Users/danielschacht/ERF3-website/backend/data/applications.json`
+**Key Features:**
+- Automatic table creation on first deployment
+- CamelCase ↔ snake_case conversion handled automatically
+- Parameterized queries (SQL injection protection)
+- Connection pooling for performance
+- Full-text search capability
 
-### Future: Upgrading to SQL (Optional)
+### Database Setup
 
-If you need to scale or want SQL features, you can easily upgrade to:
+**For detailed setup instructions, see: [DATABASE_SETUP.md](./DATABASE_SETUP.md)**
 
-**Recommended Options:**
-1. **SQLite** (Simple, file-based)
-   - No server required
-   - Good for 100-1000 applications
+Quick setup:
+1. Create Vercel Postgres database in Vercel Dashboard
+2. Connect to your project (automatic environment variables)
+3. Deploy - tables created automatically
+4. Done!
 
-2. **PostgreSQL** (Production-ready)
-   - Robust and scalable
-   - Good for 1000+ applications
-   - Free and open-source
+### Schema
 
-3. **MySQL/MariaDB**
-   - Popular and well-supported
-   - Good for any scale
+The database includes:
+- **50+ fields** for application data
+- **JSONB columns** for flexible data (monthly_breakdown, notes)
+- **Indexes** on key fields (status, dates, names)
+- **Timestamps** for audit trails
 
-**Migration is straightforward** - The API structure won't change, you'll just swap the file operations with database queries.
+Full schema: `backend/schema.sql`
 
-### When to upgrade to SQL:
-- More than 500 applications
-- Need complex queries/reporting
-- Multiple simultaneous users
-- Need transaction support
-- Want better data integrity
+### Backup & Safety
+
+- ✅ Automatic daily backups via Vercel
+- ✅ Point-in-time recovery available
+- ✅ Export data anytime via SQL queries
+- ✅ Connection pooling prevents overload
 
 ## Usage Guide
 
