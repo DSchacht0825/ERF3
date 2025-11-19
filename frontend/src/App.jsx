@@ -39,18 +39,22 @@ function Navigation() {
           <li className="nav-item">
             <Link to="/apply" className="nav-link">Apply</Link>
           </li>
-          <li className="nav-item">
-            {isAuthenticated ? (
-              <>
+          {isAuthenticated ? (
+            <>
+              <li className="nav-item">
                 <Link to="/dashboard" className="nav-link">Dashboard</Link>
+              </li>
+              <li className="nav-item">
                 <button onClick={handleLogout} className="nav-link btn-logout">
                   Logout
                 </button>
-              </>
-            ) : (
+              </li>
+            </>
+          ) : (
+            <li className="nav-item">
               <Link to="/login" className="nav-link">Admin Login</Link>
-            )}
-          </li>
+            </li>
+          )}
         </ul>
       </div>
     </nav>
