@@ -178,7 +178,7 @@ app.get('/api/applications', async (req, res) => {
       ORDER BY submitted_date DESC
     `;
 
-    const applications = result.rows.map(row => convertKeysToCamel(row));
+    const applications = result.map(row => convertKeysToCamel(row));
     res.json(applications);
   } catch (error) {
     console.error('Error retrieving applications:', error);
@@ -194,11 +194,11 @@ app.get('/api/applications/:id', async (req, res) => {
       WHERE id = ${req.params.id}
     `;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    const application = convertKeysToCamel(result.rows[0]);
+    const application = convertKeysToCamel(result[0]);
     res.json(application);
   } catch (error) {
     console.error('Error retrieving application:', error);
@@ -213,7 +213,7 @@ app.post('/api/applications', async (req, res) => {
 
     // Get current count for generating application ID
     const countResult = await sql`SELECT COUNT(*) as count FROM applications`;
-    const count = parseInt(countResult.rows[0].count);
+    const count = parseInt(countResult[0].count);
     const applicationId = `ERF3-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
     console.log(`Creating application ${applicationId}`);
@@ -358,7 +358,7 @@ app.delete('/api/applications/:id', async (req, res) => {
       RETURNING id
     `;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Application not found' });
     }
 
@@ -385,13 +385,13 @@ app.get('/api/statistics', async (req, res) => {
     `;
 
     const stats = {
-      total: parseInt(result.rows[0].total),
-      pending: parseInt(result.rows[0].pending),
-      viewed: parseInt(result.rows[0].viewed),
-      approved: parseInt(result.rows[0].approved),
-      denied: parseInt(result.rows[0].denied),
-      totalRequested: parseFloat(result.rows[0].total_requested),
-      totalApproved: parseFloat(result.rows[0].total_approved)
+      total: parseInt(result[0].total),
+      pending: parseInt(result[0].pending),
+      viewed: parseInt(result[0].viewed),
+      approved: parseInt(result[0].approved),
+      denied: parseInt(result[0].denied),
+      totalRequested: parseFloat(result[0].total_requested),
+      totalApproved: parseFloat(result[0].total_approved)
     };
 
     res.json(stats);
