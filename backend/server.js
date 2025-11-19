@@ -13,8 +13,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
-// Data file path
-const DATA_DIR = path.join(__dirname, 'data');
+// Data file path - use /tmp in production (Vercel), local data dir in development
+const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(__dirname, 'data');
 const APPLICATIONS_FILE = path.join(DATA_DIR, 'applications.json');
 
 // Initialize data directory and file
@@ -89,7 +89,9 @@ app.get('/api/applications/:id', async (req, res) => {
 // Create new application
 app.post('/api/applications', async (req, res) => {
   try {
+    console.log('Received application submission');
     const applications = await readApplications();
+    console.log(`Current applications count: ${applications.length}`);
 
     const newApplication = {
       id: uuidv4(),
@@ -105,16 +107,19 @@ app.post('/api/applications', async (req, res) => {
     };
 
     applications.push(newApplication);
+    console.log(`Saving application ${newApplication.applicationId} to ${APPLICATIONS_FILE}`);
     const success = await writeApplications(applications);
 
     if (success) {
+      console.log('Application saved successfully');
       res.status(201).json(newApplication);
     } else {
+      console.error('Failed to write applications file');
       res.status(500).json({ error: 'Failed to save application' });
     }
   } catch (error) {
     console.error('Error creating application:', error);
-    res.status(500).json({ error: 'Failed to create application' });
+    res.status(500).json({ error: 'Failed to create application', details: error.message });
   }
 });
 
