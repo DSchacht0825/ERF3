@@ -11,6 +11,11 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showReportPreview, setShowReportPreview] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingApplication, setEditingApplication] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -187,6 +192,63 @@ function Dashboard() {
 
   const closeDetail = () => {
     setSelectedApplication(null);
+  };
+
+  const confirmDelete = (app) => {
+    setApplicationToDelete(app);
+    setShowDeleteConfirm(true);
+  };
+
+  const cancelDelete = () => {
+    setApplicationToDelete(null);
+    setShowDeleteConfirm(false);
+  };
+
+  const deleteApplication = async () => {
+    if (!applicationToDelete) return;
+
+    try {
+      await axios.delete(`${API_URL}/applications/${applicationToDelete.id}`);
+      await fetchApplications();
+      await fetchStatistics();
+      setShowDeleteConfirm(false);
+      setApplicationToDelete(null);
+      alert('Application deleted successfully');
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      alert('Failed to delete application. Please try again.');
+    }
+  };
+
+  const openEditModal = (app) => {
+    setEditingApplication(app);
+    setEditFormData({ ...app });
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setEditingApplication(null);
+    setEditFormData({});
+    setShowEditModal(false);
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEditedApplication = async () => {
+    if (!editingApplication) return;
+
+    try {
+      await axios.put(`${API_URL}/applications/${editingApplication.id}`, editFormData);
+      await fetchApplications();
+      await fetchStatistics();
+      closeEditModal();
+      alert('Application updated successfully');
+    } catch (error) {
+      console.error('Error updating application:', error);
+      alert('Failed to update application. Please try again.');
+    }
   };
 
   const calculateTotalSubsidizedDollars = () => {
@@ -508,6 +570,13 @@ function Dashboard() {
                         >
                           View
                         </button>
+                        <button
+                          className="btn-small"
+                          style={{ backgroundColor: '#3b82f6', color: 'white' }}
+                          onClick={() => openEditModal(app)}
+                        >
+                          Edit
+                        </button>
                         {app.status !== 'approved' && (
                           <button
                             className="btn-small btn-approve"
@@ -524,6 +593,13 @@ function Dashboard() {
                             Deny
                           </button>
                         )}
+                        <button
+                          className="btn-small"
+                          style={{ backgroundColor: '#dc2626', color: 'white' }}
+                          onClick={() => confirmDelete(app)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -539,6 +615,276 @@ function Dashboard() {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && applicationToDelete && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <button className="modal-close" onClick={cancelDelete}>×</button>
+
+            <h2 style={{ color: '#dc2626' }}>⚠️ Delete Application</h2>
+
+            <div className="detail-section" style={{ backgroundColor: '#fef2f2', padding: '1.5rem', borderRadius: '8px', border: '2px solid #dc2626' }}>
+              <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
+                Are you sure you want to delete this application?
+              </p>
+              <div className="detail-grid">
+                <div><strong>Application ID:</strong> {applicationToDelete.applicationId}</div>
+                <div><strong>Applicant:</strong> {applicationToDelete.applicantName}</div>
+                <div><strong>Agency:</strong> {applicationToDelete.agencyName}</div>
+                <div><strong>Status:</strong> {applicationToDelete.status}</div>
+                <div><strong>Amount:</strong> ${parseFloat(applicationToDelete.totalAssistanceRequested || 0).toLocaleString()}</div>
+              </div>
+              <p style={{ marginTop: '1rem', color: '#dc2626', fontWeight: 'bold' }}>
+                ⚠️ This action cannot be undone!
+              </p>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn btn-danger"
+                onClick={deleteApplication}
+              >
+                Yes, Delete Application
+              </button>
+              <button className="btn btn-secondary" onClick={cancelDelete}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Application Modal */}
+      {showEditModal && editingApplication && (
+        <div className="modal-overlay" onClick={closeEditModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px', maxHeight: '90vh' }}>
+            <button className="modal-close" onClick={closeEditModal}>×</button>
+
+            <h2>Edit Application - {editingApplication.applicationId}</h2>
+
+            <div style={{ maxHeight: '65vh', overflowY: 'auto', padding: '1rem' }}>
+              {/* Applicant Information */}
+              <div className="detail-section">
+                <h3>Applicant Information</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Name:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.applicantName || ''}
+                      onChange={(e) => handleEditChange('applicantName', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Phone:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.applicantPhone || ''}
+                      onChange={(e) => handleEditChange('applicantPhone', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Email:</strong></label>
+                    <input
+                      type="email"
+                      value={editFormData.applicantEmail || ''}
+                      onChange={(e) => handleEditChange('applicantEmail', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Household Size:</strong></label>
+                    <input
+                      type="number"
+                      value={editFormData.householdSize || ''}
+                      onChange={(e) => handleEditChange('householdSize', parseInt(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Agency Information */}
+              <div className="detail-section">
+                <h3>Agency Information</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Agency Name:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.agencyName || ''}
+                      onChange={(e) => handleEditChange('agencyName', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Case Manager:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.caseManagerName || ''}
+                      onChange={(e) => handleEditChange('caseManagerName', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Manager Email:</strong></label>
+                    <input
+                      type="email"
+                      value={editFormData.caseManagerEmail || ''}
+                      onChange={(e) => handleEditChange('caseManagerEmail', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Manager Phone:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.caseManagerPhone || ''}
+                      onChange={(e) => handleEditChange('caseManagerPhone', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Information */}
+              <div className="detail-section">
+                <h3>Financial Information</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Monthly Rent:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.monthlyRent || ''}
+                      onChange={(e) => handleEditChange('monthlyRent', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Security Deposit:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.securityDeposit || ''}
+                      onChange={(e) => handleEditChange('securityDeposit', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Current Income:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.currentIncome || ''}
+                      onChange={(e) => handleEditChange('currentIncome', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Projected Income:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.projectedIncome || ''}
+                      onChange={(e) => handleEditChange('projectedIncome', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Landlord Information */}
+              <div className="detail-section">
+                <h3>Landlord Information</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Landlord Name:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.landlordName || ''}
+                      onChange={(e) => handleEditChange('landlordName', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Landlord Phone:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.landlordPhone || ''}
+                      onChange={(e) => handleEditChange('landlordPhone', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Landlord Email:</strong></label>
+                    <input
+                      type="email"
+                      value={editFormData.landlordEmail || ''}
+                      onChange={(e) => handleEditChange('landlordEmail', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Property Address:</strong></label>
+                    <input
+                      type="text"
+                      value={editFormData.propertyAddress || ''}
+                      onChange={(e) => handleEditChange('propertyAddress', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="detail-section">
+                <h3>Application Status</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Status:</strong></label>
+                    <select
+                      value={editFormData.status || ''}
+                      onChange={(e) => handleEditChange('status', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="viewed">Viewed</option>
+                      <option value="approved">Approved</option>
+                      <option value="denied">Denied</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary of Needs */}
+              <div className="detail-section">
+                <h3>Summary of Needs</h3>
+                <textarea
+                  value={editFormData.summaryOfNeeds || ''}
+                  onChange={(e) => handleEditChange('summaryOfNeeds', e.target.value)}
+                  style={{ width: '100%', padding: '0.5rem', minHeight: '100px' }}
+                />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn btn-success"
+                onClick={saveEditedApplication}
+              >
+                Save Changes
+              </button>
+              <button className="btn btn-secondary" onClick={closeEditModal}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Report Preview Modal */}
       {showReportPreview && previewData && (
