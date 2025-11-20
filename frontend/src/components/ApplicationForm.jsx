@@ -154,14 +154,32 @@ function ApplicationForm() {
     return breakdown;
   };
 
+  const handleKeyDown = (e) => {
+    // Prevent Enter key from submitting form when not on last tab
+    if (e.key === 'Enter' && currentTab !== tabs.length - 1) {
+      // Allow Enter in textareas
+      if (e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        console.log('Enter key prevented on tab:', currentTab);
+        return false;
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
 
-    // Only submit if on the last tab
-    if (currentTab < tabs.length - 1) {
-      setCurrentTab(currentTab + 1); // Go to next tab instead
-      return;
+    console.log('Form submit triggered. Current tab:', currentTab, 'Last tab index:', tabs.length - 1);
+
+    // CRITICAL: Only submit if on the LAST tab (tab 4 - Landlord & Approval)
+    if (currentTab !== tabs.length - 1) {
+      console.log('Not on last tab - preventing submission');
+      // Don't navigate, just prevent submission
+      return false;
     }
+
+    console.log('On last tab - proceeding with submission');
 
     try {
       const totals = calculateTotals();
@@ -218,7 +236,7 @@ function ApplicationForm() {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="application-form">
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="application-form">
         {/* TAB 1: REFERRING AGENCY */}
         {currentTab === 0 && (
           <div className="tab-content">
