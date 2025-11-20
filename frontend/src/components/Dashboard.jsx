@@ -9,6 +9,8 @@ function Dashboard() {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showReportPreview, setShowReportPreview] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -187,6 +189,59 @@ function Dashboard() {
     setSelectedApplication(null);
   };
 
+  const calculateTotalSubsidizedDollars = () => {
+    // Only count approved applications
+    const approvedApps = filteredApplications.filter(app => app.status === 'approved');
+
+    let total = 0;
+    approvedApps.forEach(app => {
+      // Try to get from monthly breakdown first (most accurate)
+      if (app.monthlyBreakdown && app.monthlyBreakdown.length > 0) {
+        const appTotal = app.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+        total += appTotal;
+      } else if (app.totalRentalAssistance) {
+        // Fallback to totalRentalAssistance
+        total += parseFloat(app.totalRentalAssistance);
+      } else if (app.totalAssistanceRequested) {
+        // Final fallback
+        total += parseFloat(app.totalAssistanceRequested);
+      }
+    });
+
+    return total;
+  };
+
+  const generateReportPreview = () => {
+    const headers = Object.keys(reportFields)
+      .filter(key => reportFields[key])
+      .map(key => ({
+        key,
+        label: key.replace(/([A-Z])/g, ' $1').trim()
+      }));
+
+    const rows = filteredApplications.map(app => {
+      const row = {};
+      Object.keys(reportFields).forEach(key => {
+        if (reportFields[key]) {
+          let value = app[key] || '';
+          if (key === 'submittedDate' && value) {
+            value = new Date(value).toLocaleDateString();
+          }
+          if (key === 'totalAssistanceRequested' || key === 'currentIncome' || key === 'monthlyRent') {
+            value = `$${parseFloat(value || 0).toFixed(2)}`;
+          }
+          row[key] = value;
+        }
+      });
+      return row;
+    });
+
+    const totalSubsidized = calculateTotalSubsidizedDollars();
+
+    setPreviewData({ headers, rows, totalSubsidized });
+    setShowReportPreview(true);
+  };
+
   const exportToCSV = () => {
     const headers = Object.keys(reportFields)
       .filter(key => reportFields[key])
@@ -260,6 +315,13 @@ function Dashboard() {
           <div className="stat-card approved">
             <h3>Total Approved</h3>
             <div className="stat-number">${statistics.totalApproved.toLocaleString()}</div>
+          </div>
+          <div className="stat-card" style={{ backgroundColor: '#10b981', color: 'white' }}>
+            <h3>Subsidized Dollars Spent</h3>
+            <div className="stat-number">${calculateTotalSubsidizedDollars().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.9 }}>
+              Approved applications only
+            </div>
           </div>
         </div>
       )}
@@ -401,8 +463,8 @@ function Dashboard() {
             </label>
           ))}
         </div>
-        <button className="btn btn-success" onClick={exportToCSV}>
-          Export to CSV ({filteredApplications.length} applications)
+        <button className="btn btn-success" onClick={generateReportPreview}>
+          Preview Report ({filteredApplications.length} applications)
         </button>
       </div>
 
@@ -477,6 +539,74 @@ function Dashboard() {
           </table>
         </div>
       </div>
+
+      {/* Report Preview Modal */}
+      {showReportPreview && previewData && (
+        <div className="modal-overlay" onClick={() => setShowReportPreview(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '90%', maxHeight: '90vh' }}>
+            <button className="modal-close" onClick={() => setShowReportPreview(false)}>×</button>
+
+            <h2>Custom Report Preview</h2>
+
+            <div className="detail-section" style={{ backgroundColor: '#ecfdf5', padding: '1.5rem', borderRadius: '8px', border: '2px solid #10b981', marginBottom: '1.5rem' }}>
+              <h3 style={{ color: '#047857', marginBottom: '1rem' }}>Report Summary</h3>
+              <div className="detail-grid">
+                <div>
+                  <strong>Total Applications in Report:</strong> {previewData.rows.length}
+                </div>
+                <div>
+                  <strong>Report Generated:</strong> {new Date().toLocaleString()}
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <strong style={{ fontSize: '1.2rem' }}>Total Subsidized Dollars Spent:</strong>
+                  <span style={{ color: '#047857', fontWeight: 'bold', fontSize: '1.3rem', marginLeft: '1rem' }}>
+                    ${previewData.totalSubsidized.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <div style={{ fontSize: '0.9rem', color: '#065f46', marginTop: '0.5rem' }}>
+                    (Only includes approved applications - excludes client contributions)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ maxHeight: '50vh', overflowY: 'auto', marginBottom: '1.5rem' }}>
+              <table className="applications-table">
+                <thead style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 10 }}>
+                  <tr>
+                    {previewData.headers.map(header => (
+                      <th key={header.key}>{header.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewData.rows.map((row, idx) => (
+                    <tr key={idx}>
+                      {previewData.headers.map(header => (
+                        <td key={header.key}>{row[header.key]}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn btn-success"
+                onClick={() => {
+                  exportToCSV();
+                  setShowReportPreview(false);
+                }}
+              >
+                Download CSV
+              </button>
+              <button className="btn btn-secondary" onClick={() => setShowReportPreview(false)}>
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Application Detail Modal */}
       {selectedApplication && (
