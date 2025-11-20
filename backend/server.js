@@ -248,11 +248,20 @@ app.post('/api/applications', async (req, res) => {
     const fields = ['application_id', 'status'];
     const values = [applicationId, 'pending'];
 
+    // JSONB fields that need to be stringified
+    const jsonbFields = ['phases', 'monthly_breakdown', 'notes'];
+
     // Add all fields from request body
     for (const [key, value] of Object.entries(snakeData)) {
       if (value !== undefined && value !== null && value !== '') {
         fields.push(key);
-        values.push(value);
+
+        // Stringify JSONB fields
+        if (jsonbFields.includes(key) && typeof value === 'object') {
+          values.push(JSON.stringify(value));
+        } else {
+          values.push(value);
+        }
       }
     }
 
