@@ -484,17 +484,69 @@ function Dashboard() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={closeDetail}>×</button>
 
-            <h2>Application Details</h2>
+            <h2>Application Details - {selectedApplication.applicationId}</h2>
 
             <div className="detail-section">
               <h3>Application Information</h3>
               <div className="detail-grid">
                 <div><strong>Application ID:</strong> {selectedApplication.applicationId}</div>
                 <div><strong>Status:</strong> <span className={`status-badge ${selectedApplication.status}`}>{selectedApplication.status}</span></div>
+                <div><strong>Application Date:</strong> {selectedApplication.applicationDate ? new Date(selectedApplication.applicationDate).toLocaleDateString() : 'N/A'}</div>
                 <div><strong>Submitted:</strong> {new Date(selectedApplication.submittedDate).toLocaleString()}</div>
                 {selectedApplication.viewedDate && (
                   <div><strong>Viewed:</strong> {new Date(selectedApplication.viewedDate).toLocaleString()}</div>
                 )}
+                {selectedApplication.approvalDate && (
+                  <div><strong>Approved:</strong> {new Date(selectedApplication.approvalDate).toLocaleString()}</div>
+                )}
+                {selectedApplication.denialDate && (
+                  <div><strong>Denied:</strong> {new Date(selectedApplication.denialDate).toLocaleString()}</div>
+                )}
+                {selectedApplication.reviewedBy && (
+                  <div><strong>Reviewed By:</strong> {selectedApplication.reviewedBy}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Financial Summary - MAIN REQUEST */}
+            <div className="detail-section" style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '8px', border: '2px solid #3b82f6' }}>
+              <h3 style={{ color: '#1e40af', marginBottom: '1rem' }}>Financial Summary</h3>
+              <div className="detail-grid">
+                <div style={{ fontSize: '1.1rem' }}>
+                  <strong>Total ERF3 Subsidy:</strong>
+                  <span style={{ color: '#059669', fontWeight: 'bold', marginLeft: '0.5rem' }}>
+                    ${(() => {
+                      if (selectedApplication.monthlyBreakdown && selectedApplication.monthlyBreakdown.length > 0) {
+                        const total = selectedApplication.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+                        return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      }
+                      return parseFloat(selectedApplication.totalRentalAssistance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()}
+                  </span>
+                </div>
+                <div style={{ fontSize: '1.1rem' }}>
+                  <strong>Total Client Pays:</strong>
+                  <span style={{ color: '#dc2626', fontWeight: 'bold', marginLeft: '0.5rem' }}>
+                    ${(() => {
+                      if (selectedApplication.monthlyBreakdown && selectedApplication.monthlyBreakdown.length > 0) {
+                        const total = selectedApplication.monthlyBreakdown.reduce((sum, month) => sum + (month.clientPays || 0), 0);
+                        return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      }
+                      return '0.00';
+                    })()}
+                  </span>
+                </div>
+                <div><strong>Program Duration:</strong> {selectedApplication.totalMonths || 'N/A'} months</div>
+                <div><strong>Security Deposit Included:</strong> {selectedApplication.includeSecurityDeposit || 'N/A'}</div>
+                {selectedApplication.securityAmount && (
+                  <div><strong>Security Deposit Amount:</strong> ${parseFloat(selectedApplication.securityAmount).toFixed(2)}</div>
+                )}
+                <div style={{ fontSize: '1.1rem' }}>
+                  <strong>Total Assistance Requested:</strong>
+                  <span style={{ color: '#1e40af', fontWeight: 'bold', marginLeft: '0.5rem' }}>
+                    ${parseFloat(selectedApplication.totalAssistanceRequested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -502,55 +554,173 @@ function Dashboard() {
               <h3>Applicant Information</h3>
               <div className="detail-grid">
                 <div><strong>Name:</strong> {selectedApplication.applicantName}</div>
+                <div><strong>Date of Birth:</strong> {selectedApplication.applicantDob ? new Date(selectedApplication.applicantDob).toLocaleDateString() : 'N/A'}</div>
+                <div><strong>SSN:</strong> {selectedApplication.applicantSsn || 'N/A'}</div>
                 <div><strong>Phone:</strong> {selectedApplication.applicantPhone}</div>
                 <div><strong>Email:</strong> {selectedApplication.applicantEmail}</div>
                 <div><strong>Address:</strong> {selectedApplication.applicantAddress}</div>
                 <div><strong>Household Size:</strong> {selectedApplication.householdSize}</div>
-                <div><strong>Children:</strong> {selectedApplication.numberOfChildren}</div>
-              </div>
-            </div>
-
-            <div className="detail-section">
-              <h3>Referring Agency</h3>
-              <div className="detail-grid">
-                <div><strong>Agency:</strong> {selectedApplication.agencyName}</div>
-                <div><strong>Case Manager:</strong> {selectedApplication.caseManagerName}</div>
-                <div><strong>Manager Email:</strong> {selectedApplication.caseManagerEmail}</div>
-                <div><strong>Manager Phone:</strong> {selectedApplication.caseManagerPhone}</div>
-                <div><strong>Program:</strong> {selectedApplication.referringProgram}</div>
-              </div>
-            </div>
-
-            <div className="detail-section">
-              <h3>Financial Information</h3>
-              <div className="detail-grid">
-                <div><strong>Monthly Rent:</strong> ${parseFloat(selectedApplication.monthlyRent || 0).toFixed(2)}</div>
-                <div><strong>Security Deposit:</strong> ${parseFloat(selectedApplication.securityDeposit || 0).toFixed(2)}</div>
-                <div><strong>Current Income:</strong> ${parseFloat(selectedApplication.currentIncome || 0).toFixed(2)}</div>
-                <div><strong>Projected Income:</strong> ${parseFloat(selectedApplication.projectedIncome || 0).toFixed(2)}</div>
-                <div><strong>Total Months:</strong> {selectedApplication.totalMonths}</div>
-                <div><strong>Total Assistance:</strong> ${parseFloat(selectedApplication.totalAssistanceRequested || 0).toLocaleString()}</div>
+                <div><strong>Number of Children:</strong> {selectedApplication.numberOfChildren}</div>
+                <div><strong>Emergency Contact:</strong> {selectedApplication.emergencyContactName || 'N/A'}</div>
+                <div><strong>Emergency Phone:</strong> {selectedApplication.emergencyContactPhone || 'N/A'}</div>
               </div>
             </div>
 
             <div className="detail-section">
               <h3>Summary of Needs</h3>
-              <p>{selectedApplication.summaryOfNeeds}</p>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.summaryOfNeeds || 'N/A'}</p>
             </div>
 
             <div className="detail-section">
-              <h3>Step-Down Plan Rationale</h3>
-              <p>{selectedApplication.stepDownRationale}</p>
+              <h3>Referring Agency Information</h3>
+              <div className="detail-grid">
+                <div><strong>Agency Name:</strong> {selectedApplication.agencyName}</div>
+                <div><strong>Address:</strong> {selectedApplication.agencyAddress || 'N/A'}</div>
+                <div><strong>City:</strong> {selectedApplication.agencyCity || 'N/A'}</div>
+                <div><strong>State:</strong> {selectedApplication.agencyState || 'N/A'}</div>
+                <div><strong>ZIP:</strong> {selectedApplication.agencyZip || 'N/A'}</div>
+                <div><strong>Phone:</strong> {selectedApplication.agencyPhone || 'N/A'}</div>
+                <div><strong>Email:</strong> {selectedApplication.agencyEmail || 'N/A'}</div>
+                <div><strong>Website:</strong> {selectedApplication.agencyWebsite || 'N/A'}</div>
+                <div><strong>Tax ID:</strong> {selectedApplication.agencyTaxId || 'N/A'}</div>
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3>Case Manager Information</h3>
+              <div className="detail-grid">
+                <div><strong>Case Manager:</strong> {selectedApplication.caseManagerName}</div>
+                <div><strong>Title:</strong> {selectedApplication.caseManagerTitle || 'N/A'}</div>
+                <div><strong>Phone:</strong> {selectedApplication.caseManagerPhone}</div>
+                <div><strong>Email:</strong> {selectedApplication.caseManagerEmail}</div>
+                <div><strong>Availability:</strong> {selectedApplication.caseManagerAvailability || 'N/A'}</div>
+              </div>
+              {(selectedApplication.alternateContactName || selectedApplication.alternateContactPhone || selectedApplication.alternateContactEmail) && (
+                <>
+                  <h4 style={{ marginTop: '1rem' }}>Alternate Contact</h4>
+                  <div className="detail-grid">
+                    <div><strong>Name:</strong> {selectedApplication.alternateContactName || 'N/A'}</div>
+                    <div><strong>Phone:</strong> {selectedApplication.alternateContactPhone || 'N/A'}</div>
+                    <div><strong>Email:</strong> {selectedApplication.alternateContactEmail || 'N/A'}</div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="detail-section">
+              <h3>Referral Details</h3>
+              <div className="detail-grid">
+                <div><strong>Referral Date:</strong> {selectedApplication.referralDate ? new Date(selectedApplication.referralDate).toLocaleDateString() : 'N/A'}</div>
+                <div><strong>Referring Program:</strong> {selectedApplication.referringProgram || 'N/A'}</div>
+                <div><strong>Client ID Number:</strong> {selectedApplication.clientIdNumber || 'N/A'}</div>
+                <div><strong>Length of Service:</strong> {selectedApplication.lengthOfService || 'N/A'}</div>
+                <div><strong>Program Status:</strong> {selectedApplication.programEnrollmentStatus || 'N/A'}</div>
+              </div>
+              {selectedApplication.additionalServices && (
+                <>
+                  <h4 style={{ marginTop: '1rem' }}>Additional Services</h4>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.additionalServices}</p>
+                </>
+              )}
+              {selectedApplication.agencyCoordination && (
+                <>
+                  <h4 style={{ marginTop: '1rem' }}>Agency Coordination Plan</h4>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.agencyCoordination}</p>
+                </>
+              )}
+            </div>
+
+            <div className="detail-section">
+              <h3>Income & Employment</h3>
+              <div className="detail-grid">
+                <div><strong>Current Income:</strong> ${parseFloat(selectedApplication.currentIncome || 0).toFixed(2)}/month</div>
+                <div><strong>Projected Income:</strong> ${parseFloat(selectedApplication.projectedIncome || 0).toFixed(2)}/month</div>
+                <div><strong>Primary Income Source:</strong> {selectedApplication.primaryIncomeSource || 'N/A'}</div>
+                <div><strong>Employment Status:</strong> {selectedApplication.employmentStatus || 'N/A'}</div>
+                {selectedApplication.employmentStartDate && (
+                  <div><strong>Employment Start:</strong> {new Date(selectedApplication.employmentStartDate).toLocaleDateString()}</div>
+                )}
+                {selectedApplication.expectedIncomeIncrease && (
+                  <div><strong>Expected Income Increase:</strong> ${parseFloat(selectedApplication.expectedIncomeIncrease).toFixed(2)}</div>
+                )}
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3>Lease Information</h3>
+              <div className="detail-grid">
+                <div><strong>Monthly Rent:</strong> ${parseFloat(selectedApplication.monthlyRent || 0).toFixed(2)}</div>
+                <div><strong>Security Deposit:</strong> ${parseFloat(selectedApplication.securityDeposit || 0).toFixed(2)}</div>
+                <div><strong>Lease Start Date:</strong> {selectedApplication.leaseStartDate ? new Date(selectedApplication.leaseStartDate).toLocaleDateString() : 'N/A'}</div>
+                <div><strong>Lease End Date:</strong> {selectedApplication.leaseEndDate ? new Date(selectedApplication.leaseEndDate).toLocaleDateString() : 'N/A'}</div>
+                <div><strong>Lease Term:</strong> {selectedApplication.leaseTermMonths || selectedApplication.totalMonths || 'N/A'} months</div>
+                <div><strong>Rent Due Day:</strong> {selectedApplication.rentDueDay || 'N/A'}</div>
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3>Step-Down Plan</h3>
+              {selectedApplication.phases && selectedApplication.phases.length > 0 ? (
+                <table className="detail-table" style={{ marginBottom: '1rem' }}>
+                  <thead>
+                    <tr>
+                      <th>Phase</th>
+                      <th>Months</th>
+                      <th>ERF3 Pays</th>
+                      <th>Client Pays</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedApplication.phases.map((phase, idx) => (
+                      <tr key={idx}>
+                        <td>Phase {idx + 1}</td>
+                        <td>{phase.months} months</td>
+                        <td>{phase.percentage}%</td>
+                        <td>{100 - phase.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No phase information available</p>
+              )}
+              <h4>Rationale</h4>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.stepDownRationale || 'N/A'}</p>
+            </div>
+
+            <div className="detail-section">
+              <h3>Barriers & Support Services</h3>
+              {selectedApplication.barriersToHousing && (
+                <>
+                  <h4>Barriers to Housing</h4>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.barriersToHousing}</p>
+                </>
+              )}
+              {selectedApplication.supportServicesNeeded && (
+                <>
+                  <h4 style={{ marginTop: '1rem' }}>Support Services Needed</h4>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.supportServicesNeeded}</p>
+                </>
+              )}
+              {selectedApplication.longTermHousingPlan && (
+                <>
+                  <h4 style={{ marginTop: '1rem' }}>Long-term Housing Plan</h4>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedApplication.longTermHousingPlan}</p>
+                </>
+              )}
             </div>
 
             <div className="detail-section">
               <h3>Landlord Information</h3>
               <div className="detail-grid">
-                <div><strong>Landlord:</strong> {selectedApplication.landlordName}</div>
-                <div><strong>Company:</strong> {selectedApplication.landlordCompany}</div>
-                <div><strong>Phone:</strong> {selectedApplication.landlordPhone}</div>
-                <div><strong>Email:</strong> {selectedApplication.landlordEmail}</div>
-                <div><strong>Property:</strong> {selectedApplication.propertyAddress}</div>
+                <div><strong>Landlord Name:</strong> {selectedApplication.landlordName || 'N/A'}</div>
+                <div><strong>Company:</strong> {selectedApplication.landlordCompany || 'N/A'}</div>
+                <div><strong>Phone:</strong> {selectedApplication.landlordPhone || 'N/A'}</div>
+                <div><strong>Email:</strong> {selectedApplication.landlordEmail || 'N/A'}</div>
+                <div><strong>Property Address:</strong> {selectedApplication.propertyAddress || 'N/A'}</div>
+                <div><strong>Payment Address:</strong> {selectedApplication.paymentAddress || 'N/A'}</div>
+                <div><strong>W-9 on File:</strong> {selectedApplication.w9OnFile || 'N/A'}</div>
+                <div><strong>Agreement Signed:</strong> {selectedApplication.landlordAgreementSigned || 'N/A'}</div>
               </div>
             </div>
 
@@ -562,8 +732,8 @@ function Dashboard() {
                     <tr>
                       <th>Month</th>
                       <th>Phase</th>
-                      <th>%</th>
-                      <th>Assistance</th>
+                      <th>ERF3 %</th>
+                      <th>ERF3 Assistance</th>
                       <th>Client Pays</th>
                     </tr>
                   </thead>
@@ -578,7 +748,32 @@ function Dashboard() {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                      <td colSpan="3">TOTALS</td>
+                      <td style={{ color: '#059669' }}>
+                        ${selectedApplication.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0).toFixed(2)}
+                      </td>
+                      <td style={{ color: '#dc2626' }}>
+                        ${selectedApplication.monthlyBreakdown.reduce((sum, month) => sum + (month.clientPays || 0), 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
+              </div>
+            )}
+
+            {selectedApplication.notes && selectedApplication.notes.length > 0 && (
+              <div className="detail-section">
+                <h3>Admin Notes</h3>
+                {selectedApplication.notes.map((note, idx) => (
+                  <div key={idx} style={{ padding: '0.75rem', backgroundColor: '#f9fafb', marginBottom: '0.5rem', borderRadius: '4px', borderLeft: '3px solid #3b82f6' }}>
+                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                      {new Date(note.date).toLocaleString()} - {note.author}
+                    </div>
+                    <div>{note.text}</div>
+                  </div>
+                ))}
               </div>
             )}
 
