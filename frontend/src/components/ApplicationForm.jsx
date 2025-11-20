@@ -7,6 +7,7 @@ function ApplicationForm() {
   const [currentTab, setCurrentTab] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState('');
+  const [justNavigated, setJustNavigated] = useState(false);
 
   const [formData, setFormData] = useState({
     // Tab 1: Referring Agency
@@ -170,16 +171,22 @@ function ApplicationForm() {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('Form submit triggered. Current tab:', currentTab, 'Last tab index:', tabs.length - 1);
+    console.log('Form submit triggered. Current tab:', currentTab, 'Last tab index:', tabs.length - 1, 'Just navigated:', justNavigated);
 
     // CRITICAL: Only submit if on the LAST tab (tab 4 - Landlord & Approval)
     if (currentTab !== tabs.length - 1) {
       console.log('Not on last tab - preventing submission');
-      // Don't navigate, just prevent submission
       return false;
     }
 
-    console.log('On last tab - proceeding with submission');
+    // Prevent submission if we just navigated to this tab (avoid accidental immediate submission)
+    if (justNavigated) {
+      console.log('Just navigated to last tab - preventing auto-submission');
+      setJustNavigated(false);
+      return false;
+    }
+
+    console.log('On last tab and user explicitly submitted - proceeding with submission');
 
     try {
       const totals = calculateTotals();
@@ -1017,7 +1024,15 @@ function ApplicationForm() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => setCurrentTab(currentTab + 1)}
+              onClick={() => {
+                const nextTab = currentTab + 1;
+                setCurrentTab(nextTab);
+                // Set flag if navigating to the last tab
+                if (nextTab === tabs.length - 1) {
+                  setJustNavigated(true);
+                  console.log('Navigated to last tab - auto-submission blocked');
+                }
+              }}
             >
               Next →
             </button>
