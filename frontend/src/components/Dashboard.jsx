@@ -860,12 +860,211 @@ function Dashboard() {
                 </div>
               </div>
 
+              {/* Lease Information */}
+              <div className="detail-section">
+                <h3>Lease Information</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Lease Start Date:</strong></label>
+                    <input
+                      type="date"
+                      value={editFormData.leaseStartDate?.split('T')[0] || ''}
+                      onChange={(e) => handleEditChange('leaseStartDate', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Lease End Date:</strong></label>
+                    <input
+                      type="date"
+                      value={editFormData.leaseEndDate?.split('T')[0] || ''}
+                      onChange={(e) => handleEditChange('leaseEndDate', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Total Months:</strong></label>
+                    <input
+                      type="number"
+                      value={editFormData.totalMonths || ''}
+                      onChange={(e) => handleEditChange('totalMonths', parseInt(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Breakdown - EDITABLE */}
+              {editFormData.monthlyBreakdown && editFormData.monthlyBreakdown.length > 0 && (
+                <div className="detail-section">
+                  <h3>Monthly Payment Breakdown (Editable)</h3>
+                  <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                    You can edit the ERF3 Assistance and Client Pays amounts for each month:
+                  </p>
+                  <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    <table className="detail-table">
+                      <thead style={{ position: 'sticky', top: 0, backgroundColor: '#fff' }}>
+                        <tr>
+                          <th>Month</th>
+                          <th>Phase</th>
+                          <th>ERF3 %</th>
+                          <th>ERF3 Assistance ($)</th>
+                          <th>Client Pays ($)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {editFormData.monthlyBreakdown.map((month, idx) => (
+                          <tr key={idx}>
+                            <td>{month.month}</td>
+                            <td>{month.phase}</td>
+                            <td>{month.percentage}%</td>
+                            <td>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={month.assistance || 0}
+                                onChange={(e) => {
+                                  const newBreakdown = [...editFormData.monthlyBreakdown];
+                                  newBreakdown[idx].assistance = parseFloat(e.target.value) || 0;
+                                  // Recalculate clientPays based on monthlyRent
+                                  if (editFormData.monthlyRent) {
+                                    newBreakdown[idx].clientPays = parseFloat(editFormData.monthlyRent) - newBreakdown[idx].assistance;
+                                  }
+                                  handleEditChange('monthlyBreakdown', newBreakdown);
+                                }}
+                                style={{ width: '100px', padding: '0.25rem' }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={month.clientPays || 0}
+                                onChange={(e) => {
+                                  const newBreakdown = [...editFormData.monthlyBreakdown];
+                                  newBreakdown[idx].clientPays = parseFloat(e.target.value) || 0;
+                                  // Recalculate assistance based on monthlyRent
+                                  if (editFormData.monthlyRent) {
+                                    newBreakdown[idx].assistance = parseFloat(editFormData.monthlyRent) - newBreakdown[idx].clientPays;
+                                  }
+                                  handleEditChange('monthlyBreakdown', newBreakdown);
+                                }}
+                                style={{ width: '100px', padding: '0.25rem' }}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                          <td colSpan="3">TOTALS</td>
+                          <td style={{ color: '#059669' }}>
+                            ${editFormData.monthlyBreakdown.reduce((sum, m) => sum + (m.assistance || 0), 0).toFixed(2)}
+                          </td>
+                          <td style={{ color: '#dc2626' }}>
+                            ${editFormData.monthlyBreakdown.reduce((sum, m) => sum + (m.clientPays || 0), 0).toFixed(2)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Step-Down Phases */}
+              {editFormData.phases && editFormData.phases.length > 0 && (
+                <div className="detail-section">
+                  <h3>Step-Down Phases (Editable)</h3>
+                  <table className="detail-table">
+                    <thead>
+                      <tr>
+                        <th>Phase</th>
+                        <th>ERF3 Pays (%)</th>
+                        <th>Months</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {editFormData.phases.map((phase, idx) => (
+                        <tr key={idx}>
+                          <td>Phase {idx + 1}</td>
+                          <td>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={phase.percentage || 0}
+                              onChange={(e) => {
+                                const newPhases = [...editFormData.phases];
+                                newPhases[idx].percentage = parseInt(e.target.value) || 0;
+                                handleEditChange('phases', newPhases);
+                              }}
+                              style={{ width: '80px', padding: '0.25rem' }}
+                            />
+                            %
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              min="0"
+                              value={phase.months || 0}
+                              onChange={(e) => {
+                                const newPhases = [...editFormData.phases];
+                                newPhases[idx].months = parseInt(e.target.value) || 0;
+                                handleEditChange('phases', newPhases);
+                              }}
+                              style={{ width: '80px', padding: '0.25rem' }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Calculated Totals */}
+              <div className="detail-section">
+                <h3>Calculated Totals</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label><strong>Total Rental Assistance:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.totalRentalAssistance || ''}
+                      onChange={(e) => handleEditChange('totalRentalAssistance', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Total Assistance Requested:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.totalAssistanceRequested || ''}
+                      onChange={(e) => handleEditChange('totalAssistanceRequested', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Summary of Needs */}
               <div className="detail-section">
                 <h3>Summary of Needs</h3>
                 <textarea
                   value={editFormData.summaryOfNeeds || ''}
                   onChange={(e) => handleEditChange('summaryOfNeeds', e.target.value)}
+                  style={{ width: '100%', padding: '0.5rem', minHeight: '100px' }}
+                />
+              </div>
+
+              {/* Step-Down Rationale */}
+              <div className="detail-section">
+                <h3>Step-Down Plan Rationale</h3>
+                <textarea
+                  value={editFormData.stepDownRationale || ''}
+                  onChange={(e) => handleEditChange('stepDownRationale', e.target.value)}
                   style={{ width: '100%', padding: '0.5rem', minHeight: '100px' }}
                 />
               </div>
