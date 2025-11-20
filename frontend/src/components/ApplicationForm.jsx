@@ -157,6 +157,12 @@ function ApplicationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Only submit if on the last tab
+    if (currentTab < tabs.length - 1) {
+      setCurrentTab(currentTab + 1); // Go to next tab instead
+      return;
+    }
+
     try {
       const totals = calculateTotals();
       const monthlyBreakdown = generateMonthlyBreakdown();
