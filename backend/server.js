@@ -33,7 +33,13 @@ app.use(express.json());
 
 // Helper function to convert camelCase to snake_case
 function toSnakeCase(str) {
-  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  return str
+    // Handle acronyms (DOB, SSN, etc.) - don't split them
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    // Insert underscore before capital letters
+    .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    // Convert to lowercase
+    .toLowerCase();
 }
 
 // Helper function to convert snake_case to camelCase
