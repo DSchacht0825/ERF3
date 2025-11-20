@@ -52,7 +52,7 @@ function ApplicationForm() {
     // Tab 3: Financial & Plan
     monthlyRent: '',
     securityDeposit: '',
-    // includeSecurityDeposit: 'Yes', // Removed - not in database
+    includeSecurityDeposit: 'Yes',
     currentIncome: '',
     projectedIncome: '',
     primaryIncomeSource: '',
@@ -117,7 +117,7 @@ function ApplicationForm() {
       totalMonths += phase.months;
     });
 
-    const securityAmount = 0; // Security deposit handling removed
+    const securityAmount = formData.includeSecurityDeposit === 'Yes' ? securityDeposit : 0;
     const totalAssistanceRequested = totalRentalAssistance + securityAmount;
 
     return {
