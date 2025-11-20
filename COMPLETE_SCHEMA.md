@@ -78,6 +78,7 @@ CREATE TABLE applications (
   -- Calculated totals
   total_months INTEGER,
   total_rental_assistance DECIMAL(10, 2),
+  security_amount DECIMAL(10, 2),
   total_security_deposit DECIMAL(10, 2),
   total_assistance_requested DECIMAL(10, 2),
 
