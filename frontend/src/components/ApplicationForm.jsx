@@ -219,51 +219,47 @@ function ApplicationForm() {
             <h2>Section A: Referring Agency Information</h2>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Application Date *</label>
+                <label>Application Date</label>
                 <input
                   type="date"
                   name="applicationDate"
                   value={formData.applicationDate}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group full-width">
-                <label>Referring Agency/Organization Name *</label>
+                <label>Referring Agency/Organization Name</label>
                 <input
                   type="text"
                   name="agencyName"
                   value={formData.agencyName}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group full-width">
-                <label>Agency Address *</label>
+                <label>Agency Address</label>
                 <input
                   type="text"
                   name="agencyAddress"
                   value={formData.agencyAddress}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>City *</label>
+                <label>City</label>
                 <input
                   type="text"
                   name="agencyCity"
                   value={formData.agencyCity}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>State *</label>
+                <label>State</label>
                 <input
                   type="text"
                   name="agencyState"
@@ -275,35 +271,32 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Zip Code *</label>
+                <label>Zip Code</label>
                 <input
                   type="text"
                   name="agencyZip"
                   value={formData.agencyZip}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Agency Phone *</label>
+                <label>Agency Phone</label>
                 <input
                   type="tel"
                   name="agencyPhone"
                   value={formData.agencyPhone}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Agency Email *</label>
+                <label>Agency Email</label>
                 <input
                   type="email"
                   name="agencyEmail"
                   value={formData.agencyEmail}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
@@ -331,46 +324,42 @@ function ApplicationForm() {
             <h2>Section B: Primary Contact / Case Manager</h2>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Case Manager / Navigator Name *</label>
+                <label>Case Manager / Navigator Name</label>
                 <input
                   type="text"
                   name="caseManagerName"
                   value={formData.caseManagerName}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Job Title / Position *</label>
+                <label>Job Title / Position</label>
                 <input
                   type="text"
                   name="caseManagerTitle"
                   value={formData.caseManagerTitle}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Direct Phone *</label>
+                <label>Direct Phone</label>
                 <input
                   type="tel"
                   name="caseManagerPhone"
                   value={formData.caseManagerPhone}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Direct Email *</label>
+                <label>Direct Email</label>
                 <input
                   type="email"
                   name="caseManagerEmail"
                   value={formData.caseManagerEmail}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
@@ -419,24 +408,22 @@ function ApplicationForm() {
             <h2>Section C: Referral Details</h2>
             <div className="form-grid">
               <div className="form-group">
-                <label>Referral Date *</label>
+                <label>Referral Date</label>
                 <input
                   type="date"
                   name="referralDate"
                   value={formData.referralDate}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Program/Service Referring From *</label>
+                <label>Program/Service Referring From</label>
                 <input
                   type="text"
                   name="referringProgram"
                   value={formData.referringProgram}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
@@ -451,7 +438,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Length of Service with Agency *</label>
+                <label>Length of Service with Agency</label>
                 <input
                   type="text"
                   name="lengthOfService"
@@ -463,18 +450,17 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group full-width">
-                <label>Current Program Enrollment Status *</label>
+                <label>Current Program Enrollment Status</label>
                 <input
                   type="text"
                   name="programEnrollmentStatus"
                   value={formData.programEnrollmentStatus}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group full-width">
-                <label>Additional Services Being Provided to Client *</label>
+                <label>Additional Services Being Provided to Client</label>
                 <textarea
                   name="additionalServices"
                   value={formData.additionalServices}
@@ -503,29 +489,27 @@ function ApplicationForm() {
             <h2>Section D: Applicant / Client Information</h2>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Applicant Full Name *</label>
+                <label>Applicant Full Name</label>
                 <input
                   type="text"
                   name="applicantName"
                   value={formData.applicantName}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Date of Birth *</label>
+                <label>Date of Birth</label>
                 <input
                   type="date"
                   name="applicantDOB"
                   value={formData.applicantDOB}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>SSN (Last 4 digits) *</label>
+                <label>SSN (Last 4 digits)</label>
                 <input
                   type="text"
                   name="applicantSSN"
@@ -538,13 +522,12 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Phone Number *</label>
+                <label>Phone Number</label>
                 <input
                   type="tel"
                   name="applicantPhone"
                   value={formData.applicantPhone}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
@@ -559,18 +542,17 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group full-width">
-                <label>Current Address *</label>
+                <label>Current Address</label>
                 <input
                   type="text"
                   name="applicantAddress"
                   value={formData.applicantAddress}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Household Size *</label>
+                <label>Household Size</label>
                 <input
                   type="number"
                   name="householdSize"
@@ -593,24 +575,22 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Emergency Contact Name *</label>
+                <label>Emergency Contact Name</label>
                 <input
                   type="text"
                   name="emergencyContactName"
                   value={formData.emergencyContactName}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Emergency Contact Phone *</label>
+                <label>Emergency Contact Phone</label>
                 <input
                   type="tel"
                   name="emergencyContactPhone"
                   value={formData.emergencyContactPhone}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
             </div>
@@ -618,7 +598,7 @@ function ApplicationForm() {
             <h2>Section E: Summary of Needs</h2>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Please provide detailed explanation of why rental assistance is needed *</label>
+                <label>Please provide detailed explanation of why rental assistance is needed</label>
                 <textarea
                   name="summaryOfNeeds"
                   value={formData.summaryOfNeeds}
@@ -638,7 +618,7 @@ function ApplicationForm() {
             <h2>Section F: Financial Information</h2>
             <div className="form-grid">
               <div className="form-group">
-                <label>Monthly Rent Amount *</label>
+                <label>Monthly Rent Amount</label>
                 <input
                   type="number"
                   name="monthlyRent"
@@ -651,7 +631,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Security Deposit Amount *</label>
+                <label>Security Deposit Amount</label>
                 <input
                   type="number"
                   name="securityDeposit"
@@ -664,7 +644,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Include Security Deposit? *</label>
+                <label>Include Security Deposit?</label>
                 <select
                   name="includeSecurityDeposit"
                   value={formData.includeSecurityDeposit}
@@ -677,7 +657,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Current Monthly Income *</label>
+                <label>Current Monthly Income</label>
                 <input
                   type="number"
                   name="currentIncome"
@@ -690,7 +670,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Projected Monthly Income (12 months) *</label>
+                <label>Projected Monthly Income (12 months)</label>
                 <input
                   type="number"
                   name="projectedIncome"
@@ -703,46 +683,42 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Primary Income Source *</label>
+                <label>Primary Income Source</label>
                 <input
                   type="text"
                   name="primaryIncomeSource"
                   value={formData.primaryIncomeSource}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Lease Start Date *</label>
+                <label>Lease Start Date</label>
                 <input
                   type="date"
                   name="leaseStartDate"
                   value={formData.leaseStartDate}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Lease End Date *</label>
+                <label>Lease End Date</label>
                 <input
                   type="date"
                   name="leaseEndDate"
                   value={formData.leaseEndDate}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Rent Due Day of Month *</label>
+                <label>Rent Due Day of Month</label>
                 <input
                   type="text"
                   name="rentDueDay"
                   value={formData.rentDueDay}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
             </div>
@@ -823,7 +799,7 @@ function ApplicationForm() {
             <h2>Section H: Step-Down Plan Rationale</h2>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Explain how client will achieve financial independence *</label>
+                <label>Explain how client will achieve financial independence</label>
                 <textarea
                   name="stepDownRationale"
                   value={formData.stepDownRationale}
@@ -895,13 +871,12 @@ function ApplicationForm() {
             <h2>Section J: Landlord / Property Information</h2>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Landlord/Property Manager Name *</label>
+                <label>Landlord/Property Manager Name</label>
                 <input
                   type="text"
                   name="landlordName"
                   value={formData.landlordName}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
@@ -916,35 +891,32 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Landlord Phone Number *</label>
+                <label>Landlord Phone Number</label>
                 <input
                   type="tel"
                   name="landlordPhone"
                   value={formData.landlordPhone}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Landlord Email Address *</label>
+                <label>Landlord Email Address</label>
                 <input
                   type="email"
                   name="landlordEmail"
                   value={formData.landlordEmail}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
               <div className="form-group full-width">
-                <label>Property Address *</label>
+                <label>Property Address</label>
                 <input
                   type="text"
                   name="propertyAddress"
                   value={formData.propertyAddress}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
 
@@ -959,7 +931,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Tax ID / W-9 on File? *</label>
+                <label>Tax ID / W-9 on File?</label>
                 <select
                   name="w9OnFile"
                   value={formData.w9OnFile}
@@ -972,7 +944,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group">
-                <label>Landlord Agreement Signed? *</label>
+                <label>Landlord Agreement Signed?</label>
                 <select
                   name="landlordAgreementSigned"
                   value={formData.landlordAgreementSigned}
