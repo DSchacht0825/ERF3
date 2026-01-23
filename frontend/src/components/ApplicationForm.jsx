@@ -902,6 +902,7 @@ function ApplicationForm() {
         {currentTab === 4 && (
           <div className="tab-content">
             <h2>Section J: Landlord / Property Information</h2>
+            <p className="info-text">This section is optional at time of application. Landlord details can be added later before check is issued.</p>
             <div className="form-grid">
               <div className="form-group full-width">
                 <label>Landlord/Property Manager Name</label>
@@ -969,7 +970,6 @@ function ApplicationForm() {
                   name="w9OnFile"
                   value={formData.w9OnFile}
                   onChange={handleInputChange}
-                  required
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -982,7 +982,6 @@ function ApplicationForm() {
                   name="landlordAgreementSigned"
                   value={formData.landlordAgreementSigned}
                   onChange={handleInputChange}
-                  required
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
