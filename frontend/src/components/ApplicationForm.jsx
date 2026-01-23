@@ -61,7 +61,7 @@ function ApplicationForm() {
     leaseEndDate: '',
     rentDueDay: '1st',
 
-    // Step-down plan (6 phases)
+    // Step-down plan (8 phases - supports up to 24 months)
     phases: [
       { name: 'Phase 1 (100%)', percentage: 100, months: 3 },
       { name: 'Phase 2 (75%)', percentage: 75, months: 3 },
@@ -69,6 +69,8 @@ function ApplicationForm() {
       { name: 'Phase 4 (25%)', percentage: 25, months: 3 },
       { name: 'Phase 5', percentage: 0, months: 0 },
       { name: 'Phase 6', percentage: 0, months: 0 },
+      { name: 'Phase 7', percentage: 0, months: 0 },
+      { name: 'Phase 8', percentage: 0, months: 0 },
     ],
     stepDownRationale: '',
 
@@ -755,7 +757,7 @@ function ApplicationForm() {
             </div>
 
             <h2>Section G: Step-Down Assistance Plan</h2>
-            <p className="info-text">Configure the rental assistance step-down schedule below:</p>
+            <p className="info-text">Configure the rental assistance step-down schedule below (supports up to 24 months):</p>
 
             <div className="phase-table">
               <table>
