@@ -3,6 +3,9 @@ import axios from 'axios';
 import '../styles/Dashboard.css';
 import { API_URL } from '../config';
 
+// Total ERF3 budget
+const TOTAL_BUDGET = 2500000;
+
 function Dashboard() {
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
@@ -273,6 +276,29 @@ function Dashboard() {
     return total;
   };
 
+  // Calculate budget spent from ALL approved applications (not filtered)
+  const calculateBudgetSpent = () => {
+    const approvedApps = applications.filter(app => app.status === 'approved');
+
+    let total = 0;
+    approvedApps.forEach(app => {
+      if (app.monthlyBreakdown && app.monthlyBreakdown.length > 0) {
+        const appTotal = app.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+        total += appTotal;
+      } else if (app.totalRentalAssistance) {
+        total += parseFloat(app.totalRentalAssistance);
+      } else if (app.totalAssistanceRequested) {
+        total += parseFloat(app.totalAssistanceRequested);
+      }
+    });
+
+    return total;
+  };
+
+  const budgetSpent = calculateBudgetSpent();
+  const budgetRemaining = TOTAL_BUDGET - budgetSpent;
+  const budgetPercentUsed = (budgetSpent / TOTAL_BUDGET) * 100;
+
   const generateReportPreview = () => {
     const headers = Object.keys(reportFields)
       .filter(key => reportFields[key])
@@ -346,6 +372,50 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <h1>ERF3 Application Dashboard</h1>
+
+      {/* Budget Tracker */}
+      <div className="budget-tracker" style={{
+        background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+        borderRadius: '12px',
+        padding: '1.5rem 2rem',
+        marginBottom: '2rem',
+        color: 'white',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem' }}>ERF3 Budget Tracker</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', marginBottom: '1rem' }}>
+          <div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Total Budget</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>${TOTAL_BUDGET.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Amount Committed</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#fbbf24' }}>${budgetSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Remaining Balance</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: budgetRemaining > 0 ? '#4ade80' : '#f87171' }}>
+              ${budgetRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+        </div>
+        {/* Progress Bar */}
+        <div style={{ marginTop: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+            <span>Budget Utilization</span>
+            <span>{budgetPercentUsed.toFixed(1)}% used</span>
+          </div>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '999px', height: '12px', overflow: 'hidden' }}>
+            <div style={{
+              width: `${Math.min(budgetPercentUsed, 100)}%`,
+              height: '100%',
+              backgroundColor: budgetPercentUsed > 90 ? '#f87171' : budgetPercentUsed > 75 ? '#fbbf24' : '#4ade80',
+              borderRadius: '999px',
+              transition: 'width 0.5s ease'
+            }} />
+          </div>
+        </div>
+      </div>
 
       {/* Statistics Cards */}
       {statistics && (
