@@ -3,7 +3,7 @@ import axios from 'axios';
 import '../styles/Dashboard.css';
 import { API_URL } from '../config';
 
-// Total ERF3 budget
+// Total Vista CAREs budget
 const TOTAL_BUDGET = 2500000;
 
 function Dashboard() {
@@ -371,7 +371,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      <h1>ERF3 Application Dashboard</h1>
+      <h1>Vista CAREs Application Dashboard</h1>
 
       {/* Budget Tracker */}
       <div className="budget-tracker" style={{
@@ -382,7 +382,7 @@ function Dashboard() {
         color: 'white',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
       }}>
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem' }}>ERF3 Budget Tracker</h2>
+        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem' }}>Vista CAREs Budget Tracker</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', marginBottom: '1rem' }}>
           <div>
             <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Total Budget</div>
@@ -969,7 +969,7 @@ function Dashboard() {
                 <div className="detail-section">
                   <h3>Monthly Payment Breakdown (Editable)</h3>
                   <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
-                    You can edit the ERF3 Assistance and Client Pays amounts for each month:
+                    You can edit the Vista CAREs Assistance and Client Pays amounts for each month:
                   </p>
                   <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                     <table className="detail-table">
@@ -977,8 +977,8 @@ function Dashboard() {
                         <tr>
                           <th>Month</th>
                           <th>Phase</th>
-                          <th>ERF3 %</th>
-                          <th>ERF3 Assistance ($)</th>
+                          <th>Vista CAREs %</th>
+                          <th>Vista CAREs Assistance ($)</th>
                           <th>Client Pays ($)</th>
                         </tr>
                       </thead>
@@ -1049,7 +1049,7 @@ function Dashboard() {
                     <thead>
                       <tr>
                         <th>Phase</th>
-                        <th>ERF3 Pays (%)</th>
+                        <th>Vista CAREs Pays (%)</th>
                         <th>Months</th>
                       </tr>
                     </thead>
@@ -1258,7 +1258,7 @@ function Dashboard() {
               <h3 style={{ color: '#1e40af', marginBottom: '1rem' }}>Financial Summary</h3>
               <div className="detail-grid">
                 <div style={{ fontSize: '1.1rem' }}>
-                  <strong>Total ERF3 Subsidy:</strong>
+                  <strong>Total Vista CAREs Subsidy:</strong>
                   <span style={{ color: '#059669', fontWeight: 'bold', marginLeft: '0.5rem' }}>
                     ${(() => {
                       if (selectedApplication.monthlyBreakdown && selectedApplication.monthlyBreakdown.length > 0) {
@@ -1411,7 +1411,7 @@ function Dashboard() {
                     <tr>
                       <th>Phase</th>
                       <th>Months</th>
-                      <th>ERF3 Pays</th>
+                      <th>Vista CAREs Pays</th>
                       <th>Client Pays</th>
                     </tr>
                   </thead>
@@ -1477,8 +1477,8 @@ function Dashboard() {
                     <tr>
                       <th>Month</th>
                       <th>Phase</th>
-                      <th>ERF3 %</th>
-                      <th>ERF3 Assistance</th>
+                      <th>Vista CAREs %</th>
+                      <th>Vista CAREs Assistance</th>
                       <th>Client Pays</th>
                     </tr>
                   </thead>

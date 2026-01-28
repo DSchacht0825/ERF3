@@ -1,4 +1,4 @@
--- ERF3 Grant Funding Application Database Schema
+-- Vista CAREs Grant Funding Application Database Schema
 -- This schema creates the applications table for storing grant applications
 
 CREATE TABLE IF NOT EXISTS applications (

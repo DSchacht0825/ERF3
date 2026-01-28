@@ -31,7 +31,7 @@ function Navigation() {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <h1 className="nav-logo">ERF3 Grant Funding</h1>
+        <h1 className="nav-logo">Vista CAREs Grant Funding</h1>
         <ul className="nav-menu">
           <li className="nav-item">
             <Link to="/" className="nav-link">Home</Link>
@@ -86,7 +86,7 @@ function App() {
         </main>
 
         <footer className="footer">
-          <p>&copy; 2025 ERF3 Grant Funding. All rights reserved.</p>
+          <p>&copy; 2025 Vista CAREs Grant Funding. All rights reserved.</p>
         </footer>
       </div>
     </Router>

@@ -1,6 +1,6 @@
-# ERF3 Grant Funding Application System
+# Vista CAREs Grant Funding Application System
 
-A full-stack web application for managing ERF3 rental assistance grant applications with a React frontend and Node.js backend.
+A full-stack web application for managing Vista CAREs rental assistance grant applications with a React frontend and Node.js backend.
 
 ## Features
 
@@ -37,7 +37,7 @@ A full-stack web application for managing ERF3 rental assistance grant applicati
 ## Project Structure
 
 ```
-ERF3-website/
+Vista CAREs-website/
 ├── frontend/                 # React application
 │   ├── src/
 │   │   ├── components/      # React components
@@ -86,7 +86,7 @@ ERF3-website/
 
 1. **Clone or navigate to the project directory:**
    ```bash
-   cd /Users/danielschacht/ERF3-website
+   cd /Users/danielschacht/Vista CAREs-website
    ```
 
 2. **Install Backend Dependencies:**
@@ -109,14 +109,14 @@ You need to run both the backend and frontend servers.
 
 **Terminal 1 - Backend Server:**
 ```bash
-cd /Users/danielschacht/ERF3-website/backend
+cd /Users/danielschacht/Vista CAREs-website/backend
 npm start
 ```
 Backend will run on: `http://localhost:3001`
 
 **Terminal 2 - Frontend Server:**
 ```bash
-cd /Users/danielschacht/ERF3-website/frontend
+cd /Users/danielschacht/Vista CAREs-website/frontend
 npm run dev
 ```
 Frontend will run on: `http://localhost:5173`
@@ -124,10 +124,10 @@ Frontend will run on: `http://localhost:5173`
 #### Option 2: Background Processes
 ```bash
 # Start backend in background
-cd /Users/danielschacht/ERF3-website/backend && npm start &
+cd /Users/danielschacht/Vista CAREs-website/backend && npm start &
 
 # Start frontend
-cd /Users/danielschacht/ERF3-website/frontend && npm run dev
+cd /Users/danielschacht/Vista CAREs-website/frontend && npm run dev
 ```
 
 ### Accessing the Application
@@ -157,7 +157,7 @@ Once both servers are running:
 This project uses a **monorepo structure** with both frontend and backend in a single repository:
 
 ```
-ERF3-website/          # Single Git repository
+Vista CAREs-website/          # Single Git repository
 ├── .git/             # Git directory
 ├── frontend/         # React app
 ├── backend/          # Node.js API
@@ -172,10 +172,10 @@ ERF3-website/          # Single Git repository
 
 **To initialize Git:**
 ```bash
-cd /Users/danielschacht/ERF3-website
+cd /Users/danielschacht/Vista CAREs-website
 git init
 git add .
-git commit -m "Initial commit: ERF3 Grant Funding Application System"
+git commit -m "Initial commit: Vista CAREs Grant Funding Application System"
 ```
 
 ## Database: PostgreSQL
@@ -325,7 +325,7 @@ Create `docker-compose.yml` for both services.
 
 **Backup your data regularly:**
 ```bash
-cp /Users/danielschacht/ERF3-website/backend/data/applications.json /path/to/backup/
+cp /Users/danielschacht/Vista CAREs-website/backend/data/applications.json /path/to/backup/
 ```
 
 **Recommended:**
@@ -372,7 +372,7 @@ For issues or questions:
 
 ## License
 
-Internal use for ERF3 Grant Funding program.
+Internal use for Vista CAREs Grant Funding program.
 
 ---
 

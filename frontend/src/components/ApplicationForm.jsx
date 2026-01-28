@@ -231,7 +231,7 @@ function ApplicationForm() {
 
   return (
     <div className="application-container">
-      <h1>ERF3 Grant Funding Application</h1>
+      <h1>Vista CAREs Grant Funding Application</h1>
 
       <div className="tabs">
         {tabs.map(tab => (
@@ -504,7 +504,7 @@ function ApplicationForm() {
               </div>
 
               <div className="form-group full-width">
-                <label>Agency Coordination Plan with ERF3</label>
+                <label>Agency Coordination Plan with Vista CAREs</label>
                 <textarea
                   name="agencyCoordination"
                   value={formData.agencyCoordination}

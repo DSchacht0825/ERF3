@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# ERF3 Application Startup Script
+# Vista CAREs Application Startup Script
 # This script starts both the backend and frontend servers
 
 echo "========================================="
-echo "ERF3 Grant Funding Application System"
+echo "Vista CAREs Grant Funding Application System"
 echo "========================================="
 echo ""
 
 # Check if we're in the right directory
 if [ ! -d "backend" ] || [ ! -d "frontend" ]; then
-    echo "Error: Please run this script from the ERF3-website directory"
+    echo "Error: Please run this script from the Vista CAREs-website directory"
     exit 1
 fi
 

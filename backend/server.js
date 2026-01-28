@@ -186,10 +186,10 @@ async function initializeDatabase() {
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
-    res.json({ status: 'OK', message: 'ERF3 API is running', database: 'connected (Supabase)' });
+    res.json({ status: 'OK', message: 'Vista CAREs API is running', database: 'connected (Supabase)' });
   } catch (error) {
     console.error('Database connection error:', error);
-    res.json({ status: 'OK', message: 'ERF3 API is running', database: 'disconnected' });
+    res.json({ status: 'OK', message: 'Vista CAREs API is running', database: 'disconnected' });
   }
 });
 
@@ -237,7 +237,7 @@ app.post('/api/applications', async (req, res) => {
     // Get current count for generating application ID
     const countResult = await sql`SELECT COUNT(*) as count FROM applications`;
     const count = parseInt(countResult[0].count);
-    const applicationId = `ERF3-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    const applicationId = `Vista CAREs-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
     console.log(`Creating application ${applicationId}`);
 
@@ -438,7 +438,7 @@ if (process.env.NODE_ENV !== 'production') {
   // Local development
   initializeDatabase().then(() => {
     app.listen(PORT, () => {
-      console.log(`ERF3 API Server running on http://localhost:${PORT}`);
+      console.log(`Vista CAREs API Server running on http://localhost:${PORT}`);
       console.log('Using PostgreSQL database');
     });
   });

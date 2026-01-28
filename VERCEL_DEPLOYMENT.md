@@ -1,6 +1,6 @@
-# 🚀 Deploy ERF3 Application to Vercel
+# 🚀 Deploy Vista CAREs Application to Vercel
 
-Complete guide to deploy your ERF3 Grant Funding Application System to Vercel.
+Complete guide to deploy your Vista CAREs Grant Funding Application System to Vercel.
 
 ## ✅ Prerequisites
 
@@ -13,7 +13,7 @@ Complete guide to deploy your ERF3 Grant Funding Application System to Vercel.
 ### Step 1: Initialize Git Repository
 
 ```bash
-cd /Users/danielschacht/ERF3-website
+cd /Users/danielschacht/Vista CAREs-website
 
 # Initialize Git
 git init
@@ -22,14 +22,14 @@ git init
 git add .
 
 # Create first commit
-git commit -m "Initial commit: ERF3 Application System"
+git commit -m "Initial commit: Vista CAREs Application System"
 ```
 
 ### Step 2: Create GitHub Repository
 
 1. Go to https://github.com/new
-2. Repository name: `ERF3-website` (or your choice)
-3. Description: "ERF3 Grant Funding Application System"
+2. Repository name: `Vista CAREs-website` (or your choice)
+3. Description: "Vista CAREs Grant Funding Application System"
 4. Choose **Private** (recommended) or Public
 5. **Do NOT** initialize with README, .gitignore, or license
 6. Click "Create repository"
@@ -38,7 +38,7 @@ git commit -m "Initial commit: ERF3 Application System"
 
 ```bash
 # Add GitHub as remote (replace YOUR-USERNAME with your GitHub username)
-git remote add origin https://github.com/YOUR-USERNAME/ERF3-website.git
+git remote add origin https://github.com/YOUR-USERNAME/Vista CAREs-website.git
 
 # Push to GitHub
 git branch -M main
@@ -51,7 +51,7 @@ git push -u origin main
 
 1. Go to https://vercel.com/dashboard
 2. Click "Add New..." → "Project"
-3. Click "Import" next to your `ERF3-website` repository
+3. Click "Import" next to your `Vista CAREs-website` repository
 4. Vercel will auto-detect the configuration ✨
 5. Click "Deploy"
 6. Wait 2-3 minutes for deployment
@@ -67,12 +67,12 @@ npm install -g vercel
 vercel login
 
 # Deploy
-cd /Users/danielschacht/ERF3-website
+cd /Users/danielschacht/Vista CAREs-website
 vercel
 
 # Follow the prompts:
 # - Link to existing project? No
-# - Project name: ERF3-website
+# - Project name: Vista CAREs-website
 # - Directory: ./
 # - Override settings? No
 
@@ -269,7 +269,7 @@ vercel inspect
 
 ## 🎉 You're Live!
 
-Your ERF3 Application is now:
+Your Vista CAREs Application is now:
 - ✅ Deployed globally
 - ✅ Automatically backed up
 - ✅ Continuously deployed on git push

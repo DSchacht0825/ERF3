@@ -1,4 +1,4 @@
-# 🚀 ERF3 Application - Quick Start Guide
+# 🚀 Vista CAREs Application - Quick Start Guide
 
 ## What You Have
 
@@ -13,7 +13,7 @@
 
 ### Quick Start
 ```bash
-cd /Users/danielschacht/ERF3-website
+cd /Users/danielschacht/Vista CAREs-website
 ./start.sh
 ```
 
@@ -23,13 +23,13 @@ Then open: **http://localhost:5173**
 
 **Terminal 1 - Backend:**
 ```bash
-cd /Users/danielschacht/ERF3-website/backend
+cd /Users/danielschacht/Vista CAREs-website/backend
 npm start
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
-cd /Users/danielschacht/ERF3-website/frontend
+cd /Users/danielschacht/Vista CAREs-website/frontend
 npm run dev
 ```
 
@@ -39,7 +39,7 @@ npm run dev
 
 1. **Create GitHub repo:**
    ```bash
-   cd /Users/danielschacht/ERF3-website
+   cd /Users/danielschacht/Vista CAREs-website
    git init
    git add .
    git commit -m "Initial commit"
@@ -60,14 +60,14 @@ npm run dev
 
 ```bash
 npm install -g vercel
-cd /Users/danielschacht/ERF3-website
+cd /Users/danielschacht/Vista CAREs-website
 vercel
 ```
 
 ## 📁 Project Structure
 
 ```
-ERF3-website/                    ← One Git repo
+Vista CAREs-website/                    ← One Git repo
 ├── frontend/                    ← React application
 │   ├── src/
 │   │   ├── components/

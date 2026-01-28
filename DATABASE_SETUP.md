@@ -1,13 +1,13 @@
 # Database Setup Guide
 
-The ERF3 application now uses **PostgreSQL** via Vercel Postgres for persistent data storage.
+The Vista CAREs application now uses **PostgreSQL** via Vercel Postgres for persistent data storage.
 
 ## Quick Setup on Vercel
 
 ### Step 1: Create Postgres Database on Vercel
 
 1. Go to your Vercel Dashboard: https://vercel.com/dashboard
-2. Select your ERF3 project
+2. Select your Vista CAREs project
 3. Click on the **"Storage"** tab
 4. Click **"Create Database"**
 5. Select **"Postgres"**
@@ -50,7 +50,7 @@ You should see:
 ```json
 {
   "status": "OK",
-  "message": "ERF3 API is running",
+  "message": "Vista CAREs API is running",
   "database": "connected"
 }
 ```
@@ -64,7 +64,7 @@ The application automatically creates the following table on first run:
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key (auto-generated) |
-| application_id | VARCHAR(50) | Unique application ID (e.g., ERF3-2025-0001) |
+| application_id | VARCHAR(50) | Unique application ID (e.g., Vista CAREs-2025-0001) |
 | submitted_date | TIMESTAMP | When application was submitted |
 | status | VARCHAR(20) | pending, viewed, approved, or denied |
 | viewed_date | TIMESTAMP | When first viewed |
