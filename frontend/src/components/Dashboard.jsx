@@ -4,7 +4,7 @@ import '../styles/Dashboard.css';
 import { API_URL } from '../config';
 
 // Total Vista CAREs budget
-const TOTAL_BUDGET = 2500000;
+const TOTAL_BUDGET = 2781345.02;
 
 function Dashboard() {
   const [applications, setApplications] = useState([]);
@@ -19,6 +19,7 @@ function Dashboard() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingApplication, setEditingApplication] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -299,6 +300,24 @@ function Dashboard() {
   const budgetRemaining = TOTAL_BUDGET - budgetSpent;
   const budgetPercentUsed = (budgetSpent / TOTAL_BUDGET) * 100;
 
+  // Get approved applications with their assistance amounts for the budget modal
+  const getApprovedApplicationsWithAmounts = () => {
+    return applications
+      .filter(app => app.status === 'approved')
+      .map(app => {
+        let assistanceAmount = 0;
+        if (app.monthlyBreakdown && app.monthlyBreakdown.length > 0) {
+          assistanceAmount = app.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+        } else if (app.totalRentalAssistance) {
+          assistanceAmount = parseFloat(app.totalRentalAssistance);
+        } else if (app.totalAssistanceRequested) {
+          assistanceAmount = parseFloat(app.totalAssistanceRequested);
+        }
+        return { ...app, assistanceAmount };
+      })
+      .sort((a, b) => new Date(b.approvalDate || b.submittedDate) - new Date(a.approvalDate || a.submittedDate));
+  };
+
   const generateReportPreview = () => {
     const headers = Object.keys(reportFields)
       .filter(key => reportFields[key])
@@ -373,16 +392,35 @@ function Dashboard() {
     <div className="dashboard-container">
       <h1>Vista CAREs Application Dashboard</h1>
 
-      {/* Budget Tracker */}
-      <div className="budget-tracker" style={{
-        background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
-        borderRadius: '12px',
-        padding: '1.5rem 2rem',
-        marginBottom: '2rem',
-        color: 'white',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-      }}>
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem' }}>Vista CAREs Budget Tracker</h2>
+      {/* Budget Tracker - Clickable */}
+      <div
+        className="budget-tracker"
+        onClick={() => setShowBudgetModal(true)}
+        style={{
+          background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+          borderRadius: '12px',
+          padding: '1.5rem 2rem',
+          marginBottom: '2rem',
+          color: 'white',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s, box-shadow 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Vista CAREs Budget Tracker</h2>
+          <span style={{ fontSize: '0.85rem', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            Click to view approved applicants →
+          </span>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', marginBottom: '1rem' }}>
           <div>
             <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Total Budget</div>
@@ -1542,6 +1580,125 @@ function Dashboard() {
                 Deny Application
               </button>
               <button className="btn btn-secondary" onClick={closeDetail}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Budget Tracker Modal - Approved Applicants */}
+      {showBudgetModal && (
+        <div className="modal-overlay" onClick={() => setShowBudgetModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh' }}>
+            <button className="modal-close" onClick={() => setShowBudgetModal(false)}>×</button>
+
+            <h2 style={{ marginBottom: '1.5rem' }}>Vista CAREs Budget - Approved Applicants</h2>
+
+            {/* Budget Summary */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              color: 'white'
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', textAlign: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Total Budget</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>${TOTAL_BUDGET.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Amount Committed</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fbbf24' }}>
+                    ${budgetSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Remaining</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: budgetRemaining > 0 ? '#4ade80' : '#f87171' }}>
+                    ${budgetRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: '1rem' }}>
+                <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '999px', height: '10px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(budgetPercentUsed, 100)}%`,
+                    height: '100%',
+                    backgroundColor: budgetPercentUsed > 90 ? '#f87171' : budgetPercentUsed > 75 ? '#fbbf24' : '#4ade80',
+                    borderRadius: '999px'
+                  }} />
+                </div>
+                <div style={{ textAlign: 'center', fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.8 }}>
+                  {budgetPercentUsed.toFixed(1)}% utilized
+                </div>
+              </div>
+            </div>
+
+            {/* Approved Applicants List */}
+            <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+              <h3 style={{ marginBottom: '1rem' }}>
+                Approved Applicants ({getApprovedApplicationsWithAmounts().length})
+              </h3>
+
+              {getApprovedApplicationsWithAmounts().length > 0 ? (
+                <table className="applications-table">
+                  <thead style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 10 }}>
+                    <tr>
+                      <th>Application ID</th>
+                      <th>Applicant Name</th>
+                      <th>Agency</th>
+                      <th>Approval Date</th>
+                      <th style={{ textAlign: 'right' }}>Committed Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getApprovedApplicationsWithAmounts().map(app => (
+                      <tr key={app.id}>
+                        <td style={{ fontWeight: '500' }}>{app.applicationId}</td>
+                        <td>{app.applicantName}</td>
+                        <td>{app.agencyName}</td>
+                        <td>{app.approvalDate ? new Date(app.approvalDate).toLocaleDateString() : 'N/A'}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#059669' }}>
+                          ${app.assistanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td>
+                          <button
+                            className="btn-small btn-view"
+                            onClick={() => {
+                              setShowBudgetModal(false);
+                              viewApplication(app);
+                            }}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                      <td colSpan="4" style={{ textAlign: 'right' }}>Total Committed:</td>
+                      <td style={{ textAlign: 'right', color: '#059669', fontSize: '1.1rem' }}>
+                        ${budgetSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+                  <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No approved applications yet</p>
+                  <p style={{ fontSize: '0.9rem' }}>Approved applications will appear here with their committed amounts</p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
+              <button className="btn btn-secondary" onClick={() => setShowBudgetModal(false)}>
                 Close
               </button>
             </div>
