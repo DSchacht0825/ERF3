@@ -129,12 +129,19 @@ async function initializeDatabase() {
         other_monthly_expenses DECIMAL(10, 2),
         total_monthly_expenses DECIMAL(10, 2),
         budget_surplus_deficit DECIMAL(10, 2),
+        current_income DECIMAL(10, 2),
+        projected_income DECIMAL(10, 2),
+        primary_income_source VARCHAR(255),
         lease_start_date DATE,
         lease_end_date DATE,
         lease_term_months INTEGER,
+        rent_due_day VARCHAR(10),
+        include_security_deposit VARCHAR(10),
         total_assistance_needed DECIMAL(10, 2),
         step_down_months INTEGER,
         step_down_plan TEXT,
+        step_down_rationale TEXT,
+        phases JSONB,
         employment_status VARCHAR(100),
         employment_start_date DATE,
         expected_income_increase DECIMAL(10, 2),
@@ -144,10 +151,18 @@ async function initializeDatabase() {
 
         monthly_breakdown JSONB,
 
+        -- Calculated totals
+        total_months INTEGER,
+        total_rental_assistance DECIMAL(10, 2),
+        security_amount DECIMAL(10, 2),
+        total_assistance_requested DECIMAL(10, 2),
+
         landlord_name VARCHAR(255),
+        landlord_company VARCHAR(255),
         landlord_phone VARCHAR(20),
         landlord_email VARCHAR(255),
         landlord_address TEXT,
+        payment_address TEXT,
         property_address TEXT,
         property_city VARCHAR(100),
         property_state VARCHAR(2),
@@ -155,6 +170,8 @@ async function initializeDatabase() {
         rent_amount DECIMAL(10, 2),
         security_deposit DECIMAL(10, 2),
         landlord_agreed BOOLEAN,
+        landlord_agreement_signed VARCHAR(10),
+        w9_on_file VARCHAR(10),
         landlord_signature VARCHAR(255),
         landlord_signature_date DATE,
         applicant_signature VARCHAR(255),
@@ -173,6 +190,33 @@ async function initializeDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_status ON applications(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_submitted_date ON applications(submitted_date DESC)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_applicant_name ON applications(applicant_name)`;
+
+    // Add missing columns to existing tables (safe to run multiple times)
+    const missingColumns = [
+      { name: 'current_income', type: 'DECIMAL(10, 2)' },
+      { name: 'projected_income', type: 'DECIMAL(10, 2)' },
+      { name: 'primary_income_source', type: 'VARCHAR(255)' },
+      { name: 'rent_due_day', type: 'VARCHAR(10)' },
+      { name: 'include_security_deposit', type: 'VARCHAR(10)' },
+      { name: 'step_down_rationale', type: 'TEXT' },
+      { name: 'phases', type: 'JSONB' },
+      { name: 'total_months', type: 'INTEGER' },
+      { name: 'total_rental_assistance', type: 'DECIMAL(10, 2)' },
+      { name: 'security_amount', type: 'DECIMAL(10, 2)' },
+      { name: 'total_assistance_requested', type: 'DECIMAL(10, 2)' },
+      { name: 'landlord_company', type: 'VARCHAR(255)' },
+      { name: 'payment_address', type: 'TEXT' },
+      { name: 'w9_on_file', type: 'VARCHAR(10)' },
+      { name: 'landlord_agreement_signed', type: 'VARCHAR(10)' },
+    ];
+
+    for (const col of missingColumns) {
+      try {
+        await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
+      } catch (e) {
+        // Column may already exist, ignore
+      }
+    }
 
     console.log('Database initialized successfully');
   } catch (error) {

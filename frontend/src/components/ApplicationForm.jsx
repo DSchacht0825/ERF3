@@ -889,9 +889,19 @@ function ApplicationForm() {
 
             {monthlyBreakdown.length > 0 && (
               <div className="totals-summary">
-                <div className="total-item highlight">
-                  <span>Total Assistance (from monthly breakdown):</span>
+                <div className="total-item">
+                  <span>Total Rental Assistance:</span>
                   <strong>${monthlyBreakdown.reduce((sum, m) => sum + m.assistance, 0).toFixed(2)}</strong>
+                </div>
+                {formData.includeSecurityDeposit === 'Yes' && parseFloat(formData.securityDeposit) > 0 && (
+                  <div className="total-item">
+                    <span>Security Deposit:</span>
+                    <strong>${parseFloat(formData.securityDeposit).toFixed(2)}</strong>
+                  </div>
+                )}
+                <div className="total-item highlight">
+                  <span>TOTAL ASSISTANCE REQUESTED:</span>
+                  <strong>${totals.totalAssistanceRequested.toFixed(2)}</strong>
                 </div>
               </div>
             )}
@@ -998,7 +1008,11 @@ function ApplicationForm() {
                 <p><strong>Case Manager:</strong> {formData.caseManagerName || 'Not provided'}</p>
                 <p><strong>Monthly Rent:</strong> ${formData.monthlyRent ? parseFloat(formData.monthlyRent).toFixed(2) : '0.00'}</p>
                 <p><strong>Total Months:</strong> {totals.totalMonths}</p>
-                <p><strong>Total Assistance Requested:</strong> ${totals.totalAssistanceRequested.toFixed(2)}</p>
+                <p><strong>Total Rental Assistance:</strong> ${totals.totalRentalAssistance.toFixed(2)}</p>
+                {formData.includeSecurityDeposit === 'Yes' && totals.securityAmount > 0 && (
+                  <p><strong>Security Deposit:</strong> ${totals.securityAmount.toFixed(2)}</p>
+                )}
+                <p style={{ fontSize: '1.1rem', marginTop: '0.5rem' }}><strong>Total Assistance Requested:</strong> ${totals.totalAssistanceRequested.toFixed(2)}</p>
               </div>
             </div>
 

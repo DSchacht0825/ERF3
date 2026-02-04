@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/Dashboard.css';
 import { API_URL } from '../config';
@@ -20,6 +20,8 @@ function Dashboard() {
   const [editingApplication, setEditingApplication] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [expandedBudgetApp, setExpandedBudgetApp] = useState(null);
+  const [budgetEditData, setBudgetEditData] = useState(null);
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -316,6 +318,74 @@ function Dashboard() {
         return { ...app, assistanceAmount };
       })
       .sort((a, b) => new Date(b.approvalDate || b.submittedDate) - new Date(a.approvalDate || a.submittedDate));
+  };
+
+  // Toggle expand/collapse for budget editing
+  const toggleBudgetExpand = (app) => {
+    if (expandedBudgetApp === app.id) {
+      setExpandedBudgetApp(null);
+      setBudgetEditData(null);
+    } else {
+      setExpandedBudgetApp(app.id);
+      // Create a deep copy of the monthly breakdown for editing
+      setBudgetEditData({
+        id: app.id,
+        monthlyBreakdown: app.monthlyBreakdown ? JSON.parse(JSON.stringify(app.monthlyBreakdown)) : [],
+        monthlyRent: app.monthlyRent || 0
+      });
+    }
+  };
+
+  // Handle changes to the monthly breakdown in budget modal
+  const handleBudgetBreakdownChange = (index, field, value) => {
+    if (!budgetEditData) return;
+
+    const newBreakdown = [...budgetEditData.monthlyBreakdown];
+    const numValue = parseFloat(value) || 0;
+
+    if (field === 'assistance') {
+      newBreakdown[index].assistance = numValue;
+      // Recalculate client pays based on rent
+      newBreakdown[index].clientPays = (budgetEditData.monthlyRent || newBreakdown[index].rent || 0) - numValue;
+    } else if (field === 'clientPays') {
+      newBreakdown[index].clientPays = numValue;
+      // Recalculate assistance based on rent
+      newBreakdown[index].assistance = (budgetEditData.monthlyRent || newBreakdown[index].rent || 0) - numValue;
+    }
+
+    setBudgetEditData(prev => ({ ...prev, monthlyBreakdown: newBreakdown }));
+  };
+
+  // Calculate the edited total for preview
+  const calculateEditedTotal = () => {
+    if (!budgetEditData || !budgetEditData.monthlyBreakdown) return 0;
+    return budgetEditData.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+  };
+
+  // Save budget changes
+  const saveBudgetChanges = async () => {
+    if (!budgetEditData) return;
+
+    try {
+      const totalAssistance = calculateEditedTotal();
+
+      await axios.put(`${API_URL}/applications/${budgetEditData.id}`, {
+        monthlyBreakdown: budgetEditData.monthlyBreakdown,
+        totalRentalAssistance: totalAssistance,
+        totalAssistanceRequested: totalAssistance
+      });
+
+      await fetchApplications();
+      await fetchStatistics();
+
+      setExpandedBudgetApp(null);
+      setBudgetEditData(null);
+
+      alert('Budget updated successfully!');
+    } catch (error) {
+      console.error('Error saving budget changes:', error);
+      alert('Failed to save changes. Please try again.');
+    }
   };
 
   const generateReportPreview = () => {
@@ -1643,51 +1713,176 @@ function Dashboard() {
               </h3>
 
               {getApprovedApplicationsWithAmounts().length > 0 ? (
-                <table className="applications-table">
-                  <thead style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 10 }}>
-                    <tr>
-                      <th>Application ID</th>
-                      <th>Applicant Name</th>
-                      <th>Agency</th>
-                      <th>Approval Date</th>
-                      <th style={{ textAlign: 'right' }}>Committed Amount</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getApprovedApplicationsWithAmounts().map(app => (
-                      <tr key={app.id}>
-                        <td style={{ fontWeight: '500' }}>{app.applicationId}</td>
-                        <td>{app.applicantName}</td>
-                        <td>{app.agencyName}</td>
-                        <td>{app.approvalDate ? new Date(app.approvalDate).toLocaleDateString() : 'N/A'}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#059669' }}>
-                          ${app.assistanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td>
-                          <button
-                            className="btn-small btn-view"
-                            onClick={() => {
-                              setShowBudgetModal(false);
-                              viewApplication(app);
-                            }}
-                          >
-                            View
-                          </button>
-                        </td>
+                <div>
+                  <table className="applications-table">
+                    <thead style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 10 }}>
+                      <tr>
+                        <th></th>
+                        <th>Application ID</th>
+                        <th>Applicant Name</th>
+                        <th>Agency</th>
+                        <th style={{ textAlign: 'right' }}>Committed Amount</th>
+                        <th>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
-                      <td colSpan="4" style={{ textAlign: 'right' }}>Total Committed:</td>
-                      <td style={{ textAlign: 'right', color: '#059669', fontSize: '1.1rem' }}>
-                        ${budgetSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </thead>
+                    <tbody>
+                      {getApprovedApplicationsWithAmounts().map(app => (
+                        <React.Fragment key={app.id}>
+                          <tr style={{ backgroundColor: expandedBudgetApp === app.id ? '#f0f9ff' : 'inherit' }}>
+                            <td style={{ width: '40px' }}>
+                              <button
+                                onClick={() => toggleBudgetExpand(app)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '1.2rem',
+                                  padding: '0.25rem',
+                                  transition: 'transform 0.2s'
+                                }}
+                              >
+                                {expandedBudgetApp === app.id ? '▼' : '▶'}
+                              </button>
+                            </td>
+                            <td style={{ fontWeight: '500' }}>{app.applicationId}</td>
+                            <td>{app.applicantName}</td>
+                            <td>{app.agencyName}</td>
+                            <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#059669' }}>
+                              ${expandedBudgetApp === app.id && budgetEditData
+                                ? calculateEditedTotal().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                : app.assistanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td>
+                              <button
+                                className="btn-small btn-view"
+                                onClick={() => {
+                                  setShowBudgetModal(false);
+                                  viewApplication(app);
+                                }}
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                          {/* Expanded Edit Row */}
+                          {expandedBudgetApp === app.id && budgetEditData && (
+                            <tr>
+                              <td colSpan="6" style={{ padding: '1rem', backgroundColor: '#f8fafc' }}>
+                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', backgroundColor: 'white' }}>
+                                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e40af' }}>
+                                    Edit Monthly Breakdown - {app.applicantName}
+                                  </h4>
+
+                                  {budgetEditData.monthlyBreakdown && budgetEditData.monthlyBreakdown.length > 0 ? (
+                                    <>
+                                      <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                          <thead>
+                                            <tr style={{ backgroundColor: '#f1f5f9' }}>
+                                              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Month</th>
+                                              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Phase</th>
+                                              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Rent</th>
+                                              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Vista CAREs Pays</th>
+                                              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Client Pays</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {budgetEditData.monthlyBreakdown.map((month, idx) => (
+                                              <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                <td style={{ padding: '0.5rem' }}>{month.month}</td>
+                                                <td style={{ padding: '0.5rem' }}>{month.phase}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right' }}>
+                                                  ${(month.rent || budgetEditData.monthlyRent || 0).toFixed(2)}
+                                                </td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right' }}>
+                                                  <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={month.assistance || 0}
+                                                    onChange={(e) => handleBudgetBreakdownChange(idx, 'assistance', e.target.value)}
+                                                    style={{
+                                                      width: '100px',
+                                                      padding: '0.35rem',
+                                                      border: '1px solid #cbd5e1',
+                                                      borderRadius: '4px',
+                                                      textAlign: 'right'
+                                                    }}
+                                                  />
+                                                </td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right' }}>
+                                                  <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={month.clientPays || 0}
+                                                    onChange={(e) => handleBudgetBreakdownChange(idx, 'clientPays', e.target.value)}
+                                                    style={{
+                                                      width: '100px',
+                                                      padding: '0.35rem',
+                                                      border: '1px solid #cbd5e1',
+                                                      borderRadius: '4px',
+                                                      textAlign: 'right'
+                                                    }}
+                                                  />
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                          <tfoot>
+                                            <tr style={{ fontWeight: 'bold', backgroundColor: '#f1f5f9' }}>
+                                              <td colSpan="3" style={{ padding: '0.75rem', textAlign: 'right' }}>Totals:</td>
+                                              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#059669' }}>
+                                                ${calculateEditedTotal().toFixed(2)}
+                                              </td>
+                                              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#dc2626' }}>
+                                                ${budgetEditData.monthlyBreakdown.reduce((sum, m) => sum + (m.clientPays || 0), 0).toFixed(2)}
+                                              </td>
+                                            </tr>
+                                          </tfoot>
+                                        </table>
+                                      </div>
+
+                                      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                                        <button
+                                          className="btn btn-secondary"
+                                          onClick={() => {
+                                            setExpandedBudgetApp(null);
+                                            setBudgetEditData(null);
+                                          }}
+                                          style={{ padding: '0.5rem 1rem' }}
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          className="btn btn-success"
+                                          onClick={saveBudgetChanges}
+                                          style={{ padding: '0.5rem 1rem' }}
+                                        >
+                                          Save Changes
+                                        </button>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <p style={{ color: '#6b7280' }}>No monthly breakdown data available for this application.</p>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                        <td></td>
+                        <td colSpan="3" style={{ textAlign: 'right' }}>Total Committed:</td>
+                        <td style={{ textAlign: 'right', color: '#059669', fontSize: '1.1rem' }}>
+                          ${budgetSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
