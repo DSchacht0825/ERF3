@@ -193,6 +193,36 @@ async function initializeDatabase() {
 
     // Add missing columns to existing tables (safe to run multiple times)
     const missingColumns = [
+      // Original schema columns that may be missing from early table creation
+      { name: 'monthly_income', type: 'DECIMAL(10, 2)' },
+      { name: 'income_source', type: 'VARCHAR(255)' },
+      { name: 'monthly_utilities', type: 'DECIMAL(10, 2)' },
+      { name: 'other_monthly_expenses', type: 'DECIMAL(10, 2)' },
+      { name: 'total_monthly_expenses', type: 'DECIMAL(10, 2)' },
+      { name: 'budget_surplus_deficit', type: 'DECIMAL(10, 2)' },
+      { name: 'lease_term_months', type: 'INTEGER' },
+      { name: 'total_assistance_needed', type: 'DECIMAL(10, 2)' },
+      { name: 'step_down_months', type: 'INTEGER' },
+      { name: 'step_down_plan', type: 'TEXT' },
+      { name: 'employment_status', type: 'VARCHAR(100)' },
+      { name: 'employment_start_date', type: 'DATE' },
+      { name: 'expected_income_increase', type: 'DECIMAL(10, 2)' },
+      { name: 'barriers_to_housing', type: 'TEXT' },
+      { name: 'support_services_needed', type: 'TEXT' },
+      { name: 'long_term_housing_plan', type: 'TEXT' },
+      { name: 'landlord_address', type: 'TEXT' },
+      { name: 'property_city', type: 'VARCHAR(100)' },
+      { name: 'property_state', type: 'VARCHAR(2)' },
+      { name: 'property_zip', type: 'VARCHAR(10)' },
+      { name: 'rent_amount', type: 'DECIMAL(10, 2)' },
+      { name: 'landlord_agreed', type: 'BOOLEAN' },
+      { name: 'landlord_signature', type: 'VARCHAR(255)' },
+      { name: 'landlord_signature_date', type: 'DATE' },
+      { name: 'applicant_signature', type: 'VARCHAR(255)' },
+      { name: 'applicant_signature_date', type: 'DATE' },
+      { name: 'case_manager_signature', type: 'VARCHAR(255)' },
+      { name: 'case_manager_signature_date', type: 'DATE' },
+      // New columns added for form fields
       { name: 'current_income', type: 'DECIMAL(10, 2)' },
       { name: 'projected_income', type: 'DECIMAL(10, 2)' },
       { name: 'primary_income_source', type: 'VARCHAR(255)' },
@@ -278,10 +308,12 @@ app.post('/api/applications', async (req, res) => {
   try {
     console.log('Received application submission');
 
-    // Get current count for generating application ID
-    const countResult = await sql`SELECT COUNT(*) as count FROM applications`;
-    const count = parseInt(countResult[0].count);
-    const applicationId = `Vista CAREs-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    // Get next application number using MAX to avoid duplicates when apps are deleted
+    const maxResult = await pool.query(
+      `SELECT COALESCE(MAX(CAST(SUBSTRING(application_id FROM '[0-9]+$') AS INTEGER)), 0) as max_num FROM applications`
+    );
+    const nextNum = parseInt(maxResult.rows[0].max_num) + 1;
+    const applicationId = `Vista CAREs-${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`;
 
     console.log(`Creating application ${applicationId}`);
 
@@ -455,8 +487,8 @@ app.get('/api/statistics', async (req, res) => {
         COUNT(*) FILTER (WHERE status = 'viewed') as viewed,
         COUNT(*) FILTER (WHERE status = 'approved') as approved,
         COUNT(*) FILTER (WHERE status = 'denied') as denied,
-        COALESCE(SUM(total_assistance_needed), 0) as total_requested,
-        COALESCE(SUM(total_assistance_needed) FILTER (WHERE status = 'approved'), 0) as total_approved
+        COALESCE(SUM(total_assistance_requested), 0) as total_requested,
+        COALESCE(SUM(total_assistance_requested) FILTER (WHERE status = 'approved'), 0) as total_approved
       FROM applications
     `;
 
