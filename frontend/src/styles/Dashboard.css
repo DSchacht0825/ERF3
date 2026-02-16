@@ -406,3 +406,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Print Button */
+.btn-print {
+  background-color: #6366f1;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-print:hover {
+  background-color: #4f46e5;
+}

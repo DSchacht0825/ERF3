@@ -454,6 +454,496 @@ function Dashboard() {
     a.click();
   };
 
+  const printApplication = (app) => {
+    const printWindow = window.open('', '_blank');
+
+    // Calculate totals from monthly breakdown
+    let totalVistaCares = 0;
+    let totalClientPays = 0;
+    if (app.monthlyBreakdown && app.monthlyBreakdown.length > 0) {
+      totalVistaCares = app.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+      totalClientPays = app.monthlyBreakdown.reduce((sum, month) => sum + (month.clientPays || 0), 0);
+    } else {
+      totalVistaCares = parseFloat(app.totalRentalAssistance || 0);
+    }
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return 'N/A';
+      return new Date(dateStr).toLocaleDateString();
+    };
+
+    const formatCurrency = (amount) => {
+      return '$' + parseFloat(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Vista CAREs Application - ${app.applicationId}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+            padding: 20px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #1e3a5f;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+          }
+          .header h1 {
+            color: #1e3a5f;
+            font-size: 24px;
+            margin-bottom: 5px;
+          }
+          .header .app-id {
+            font-size: 14px;
+            color: #666;
+          }
+          .header .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            margin-top: 8px;
+          }
+          .status.approved { background: #dcfce7; color: #166534; }
+          .status.denied { background: #fee2e2; color: #991b1b; }
+          .status.pending { background: #fef3c7; color: #92400e; }
+          .status.viewed { background: #dbeafe; color: #1e40af; }
+
+          .section {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+          }
+          .section h2 {
+            background: #1e3a5f;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            margin-bottom: 8px;
+          }
+          .section-content {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+          }
+
+          .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px 20px;
+          }
+          .grid-item {
+            display: flex;
+          }
+          .grid-item strong {
+            min-width: 140px;
+            color: #374151;
+          }
+          .grid-item span {
+            flex: 1;
+          }
+
+          .financial-summary {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+          }
+          .financial-summary h2 {
+            background: none;
+            color: #1e40af;
+            padding: 0 0 8px 0;
+            border-bottom: 1px solid #3b82f6;
+            margin-bottom: 10px;
+          }
+          .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+          }
+          .financial-item .label { font-size: 10px; color: #6b7280; }
+          .financial-item .value { font-size: 16px; font-weight: bold; }
+          .financial-item .value.green { color: #059669; }
+          .financial-item .value.red { color: #dc2626; }
+          .financial-item .value.blue { color: #1e40af; }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            margin-top: 8px;
+          }
+          th, td {
+            border: 1px solid #d1d5db;
+            padding: 5px 8px;
+            text-align: left;
+          }
+          th {
+            background: #f3f4f6;
+            font-weight: bold;
+          }
+          .text-right { text-align: right; }
+          tfoot td {
+            font-weight: bold;
+            background: #f3f4f6;
+          }
+
+          .narrative {
+            white-space: pre-wrap;
+            background: #f9fafb;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+          }
+
+          .print-footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #d1d5db;
+            text-align: center;
+            font-size: 10px;
+            color: #6b7280;
+          }
+
+          @media print {
+            body { padding: 0; }
+            .section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Vista CAREs Rental Assistance Application</h1>
+          <div class="app-id">Application ID: ${app.applicationId}</div>
+          <div class="status ${app.status}">${app.status}</div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="financial-summary">
+          <h2>Financial Summary</h2>
+          <div class="financial-grid">
+            <div class="financial-item">
+              <div class="label">Total Vista CAREs Subsidy</div>
+              <div class="value green">${formatCurrency(totalVistaCares)}</div>
+            </div>
+            <div class="financial-item">
+              <div class="label">Total Client Pays</div>
+              <div class="value red">${formatCurrency(totalClientPays)}</div>
+            </div>
+            <div class="financial-item">
+              <div class="label">Total Assistance Requested</div>
+              <div class="value blue">${formatCurrency(app.totalAssistanceRequested)}</div>
+            </div>
+          </div>
+          <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+            <div class="financial-item">
+              <div class="label">Program Duration</div>
+              <div class="value">${app.totalMonths || 'N/A'} months</div>
+            </div>
+            <div class="financial-item">
+              <div class="label">Security Deposit Included</div>
+              <div class="value">${app.includeSecurityDeposit || 'N/A'}</div>
+            </div>
+            <div class="financial-item">
+              <div class="label">Security Amount</div>
+              <div class="value">${app.securityAmount ? formatCurrency(app.securityAmount) : 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Application Information -->
+        <div class="section">
+          <h2>Application Information</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Application ID:</strong> <span>${app.applicationId}</span></div>
+              <div class="grid-item"><strong>Status:</strong> <span>${app.status}</span></div>
+              <div class="grid-item"><strong>Application Date:</strong> <span>${formatDate(app.applicationDate)}</span></div>
+              <div class="grid-item"><strong>Submitted:</strong> <span>${formatDate(app.submittedDate)}</span></div>
+              ${app.viewedDate ? `<div class="grid-item"><strong>Viewed:</strong> <span>${formatDate(app.viewedDate)}</span></div>` : ''}
+              ${app.approvalDate ? `<div class="grid-item"><strong>Approved:</strong> <span>${formatDate(app.approvalDate)}</span></div>` : ''}
+              ${app.denialDate ? `<div class="grid-item"><strong>Denied:</strong> <span>${formatDate(app.denialDate)}</span></div>` : ''}
+              ${app.reviewedBy ? `<div class="grid-item"><strong>Reviewed By:</strong> <span>${app.reviewedBy}</span></div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Applicant Information -->
+        <div class="section">
+          <h2>Applicant Information</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Name:</strong> <span>${app.applicantName || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Date of Birth:</strong> <span>${formatDate(app.applicantDob)}</span></div>
+              <div class="grid-item"><strong>SSN (Last 4):</strong> <span>${app.applicantSsn || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Phone:</strong> <span>${app.applicantPhone || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Email:</strong> <span>${app.applicantEmail || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Address:</strong> <span>${app.applicantAddress || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Household Size:</strong> <span>${app.householdSize || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Number of Children:</strong> <span>${app.numberOfChildren || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Emergency Contact:</strong> <span>${app.emergencyContactName || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Emergency Phone:</strong> <span>${app.emergencyContactPhone || 'N/A'}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary of Needs -->
+        ${app.summaryOfNeeds ? `
+        <div class="section">
+          <h2>Summary of Needs</h2>
+          <div class="section-content">
+            <div class="narrative">${app.summaryOfNeeds}</div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Referring Agency Information -->
+        <div class="section">
+          <h2>Referring Agency Information</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Agency Name:</strong> <span>${app.agencyName || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Address:</strong> <span>${app.agencyAddress || 'N/A'}</span></div>
+              <div class="grid-item"><strong>City:</strong> <span>${app.agencyCity || 'N/A'}</span></div>
+              <div class="grid-item"><strong>State:</strong> <span>${app.agencyState || 'N/A'}</span></div>
+              <div class="grid-item"><strong>ZIP:</strong> <span>${app.agencyZip || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Phone:</strong> <span>${app.agencyPhone || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Email:</strong> <span>${app.agencyEmail || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Website:</strong> <span>${app.agencyWebsite || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Tax ID:</strong> <span>${app.agencyTaxId || 'N/A'}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Case Manager Information -->
+        <div class="section">
+          <h2>Case Manager Information</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Case Manager:</strong> <span>${app.caseManagerName || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Title:</strong> <span>${app.caseManagerTitle || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Phone:</strong> <span>${app.caseManagerPhone || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Email:</strong> <span>${app.caseManagerEmail || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Availability:</strong> <span>${app.caseManagerAvailability || 'N/A'}</span></div>
+            </div>
+            ${app.alternateContactName || app.alternateContactPhone || app.alternateContactEmail ? `
+            <h4 style="margin-top: 10px; margin-bottom: 6px; color: #374151;">Alternate Contact</h4>
+            <div class="grid">
+              <div class="grid-item"><strong>Name:</strong> <span>${app.alternateContactName || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Phone:</strong> <span>${app.alternateContactPhone || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Email:</strong> <span>${app.alternateContactEmail || 'N/A'}</span></div>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Referral Details -->
+        <div class="section">
+          <h2>Referral Details</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Referral Date:</strong> <span>${formatDate(app.referralDate)}</span></div>
+              <div class="grid-item"><strong>Referring Program:</strong> <span>${app.referringProgram || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Client ID Number:</strong> <span>${app.clientIdNumber || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Length of Service:</strong> <span>${app.lengthOfService || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Program Status:</strong> <span>${app.programEnrollmentStatus || 'N/A'}</span></div>
+            </div>
+            ${app.additionalServices ? `
+            <h4 style="margin-top: 10px; margin-bottom: 6px; color: #374151;">Additional Services</h4>
+            <div class="narrative">${app.additionalServices}</div>
+            ` : ''}
+            ${app.agencyCoordination ? `
+            <h4 style="margin-top: 10px; margin-bottom: 6px; color: #374151;">Agency Coordination Plan</h4>
+            <div class="narrative">${app.agencyCoordination}</div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Income & Employment -->
+        <div class="section">
+          <h2>Income & Employment</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Current Income:</strong> <span>${formatCurrency(app.currentIncome)}/month</span></div>
+              <div class="grid-item"><strong>Projected Income:</strong> <span>${formatCurrency(app.projectedIncome)}/month</span></div>
+              <div class="grid-item"><strong>Primary Income Source:</strong> <span>${app.primaryIncomeSource || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Employment Status:</strong> <span>${app.employmentStatus || 'N/A'}</span></div>
+              ${app.employmentStartDate ? `<div class="grid-item"><strong>Employment Start:</strong> <span>${formatDate(app.employmentStartDate)}</span></div>` : ''}
+              ${app.expectedIncomeIncrease ? `<div class="grid-item"><strong>Expected Income Increase:</strong> <span>${formatCurrency(app.expectedIncomeIncrease)}</span></div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Lease Information -->
+        <div class="section">
+          <h2>Lease Information</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Monthly Rent:</strong> <span>${formatCurrency(app.monthlyRent)}</span></div>
+              <div class="grid-item"><strong>Security Deposit:</strong> <span>${formatCurrency(app.securityDeposit)}</span></div>
+              <div class="grid-item"><strong>Lease Start Date:</strong> <span>${formatDate(app.leaseStartDate)}</span></div>
+              <div class="grid-item"><strong>Lease End Date:</strong> <span>${formatDate(app.leaseEndDate)}</span></div>
+              <div class="grid-item"><strong>Lease Term:</strong> <span>${app.leaseTermMonths || app.totalMonths || 'N/A'} months</span></div>
+              <div class="grid-item"><strong>Rent Due Day:</strong> <span>${app.rentDueDay || 'N/A'}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Landlord Information -->
+        <div class="section">
+          <h2>Landlord Information</h2>
+          <div class="section-content">
+            <div class="grid">
+              <div class="grid-item"><strong>Landlord Name:</strong> <span>${app.landlordName || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Company:</strong> <span>${app.landlordCompany || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Phone:</strong> <span>${app.landlordPhone || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Email:</strong> <span>${app.landlordEmail || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Property Address:</strong> <span>${app.propertyAddress || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Payment Address:</strong> <span>${app.paymentAddress || 'N/A'}</span></div>
+              <div class="grid-item"><strong>W-9 on File:</strong> <span>${app.w9OnFile || 'N/A'}</span></div>
+              <div class="grid-item"><strong>Agreement Signed:</strong> <span>${app.landlordAgreementSigned || 'N/A'}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step-Down Plan -->
+        ${app.phases && app.phases.length > 0 ? `
+        <div class="section">
+          <h2>Step-Down Plan</h2>
+          <div class="section-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Phase</th>
+                  <th>Months</th>
+                  <th>Vista CAREs Pays</th>
+                  <th>Client Pays</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${app.phases.map((phase, idx) => `
+                  <tr>
+                    <td>Phase ${idx + 1}</td>
+                    <td>${phase.months} months</td>
+                    <td>${phase.percentage}%</td>
+                    <td>${100 - phase.percentage}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            ${app.stepDownRationale ? `
+            <h4 style="margin-top: 10px; margin-bottom: 6px; color: #374151;">Rationale</h4>
+            <div class="narrative">${app.stepDownRationale}</div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Monthly Payment Breakdown -->
+        ${app.monthlyBreakdown && app.monthlyBreakdown.length > 0 ? `
+        <div class="section">
+          <h2>Monthly Payment Breakdown</h2>
+          <div class="section-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Phase</th>
+                  <th class="text-right">Vista CAREs %</th>
+                  <th class="text-right">Vista CAREs Assistance</th>
+                  <th class="text-right">Client Pays</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${app.monthlyBreakdown.map(month => `
+                  <tr>
+                    <td>${month.month}</td>
+                    <td>${month.phase}</td>
+                    <td class="text-right">${month.percentage}%</td>
+                    <td class="text-right">${formatCurrency(month.assistance)}</td>
+                    <td class="text-right">${formatCurrency(month.clientPays)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3"><strong>TOTALS</strong></td>
+                  <td class="text-right" style="color: #059669;">${formatCurrency(totalVistaCares)}</td>
+                  <td class="text-right" style="color: #dc2626;">${formatCurrency(totalClientPays)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Barriers & Support Services -->
+        ${app.barriersToHousing || app.supportServicesNeeded || app.longTermHousingPlan ? `
+        <div class="section">
+          <h2>Barriers & Support Services</h2>
+          <div class="section-content">
+            ${app.barriersToHousing ? `
+            <h4 style="margin-bottom: 6px; color: #374151;">Barriers to Housing</h4>
+            <div class="narrative" style="margin-bottom: 10px;">${app.barriersToHousing}</div>
+            ` : ''}
+            ${app.supportServicesNeeded ? `
+            <h4 style="margin-bottom: 6px; color: #374151;">Support Services Needed</h4>
+            <div class="narrative" style="margin-bottom: 10px;">${app.supportServicesNeeded}</div>
+            ` : ''}
+            ${app.longTermHousingPlan ? `
+            <h4 style="margin-bottom: 6px; color: #374151;">Long-term Housing Plan</h4>
+            <div class="narrative">${app.longTermHousingPlan}</div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Admin Notes -->
+        ${app.notes && app.notes.length > 0 ? `
+        <div class="section">
+          <h2>Admin Notes</h2>
+          <div class="section-content">
+            ${app.notes.map(note => `
+              <div style="padding: 8px; background: #f9fafb; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">
+                  ${new Date(note.date).toLocaleString()} - ${note.author}
+                </div>
+                <div>${note.text}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="print-footer">
+          <p>Vista CAREs Application - Printed on ${new Date().toLocaleString()}</p>
+          <p>Application ID: ${app.applicationId}</p>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
+
   if (loading) {
     return <div className="loading">Loading applications...</div>;
   }
@@ -1631,6 +2121,13 @@ function Dashboard() {
             )}
 
             <div className="modal-actions">
+              <button
+                className="btn btn-print"
+                onClick={() => printApplication(selectedApplication)}
+                style={{ backgroundColor: '#6366f1', color: 'white' }}
+              >
+                🖨️ Print Application
+              </button>
               <button
                 className="btn btn-success"
                 onClick={() => {
