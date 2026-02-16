@@ -41,6 +41,21 @@
   border-left-color: #dc3545;
 }
 
+.stat-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.stat-card.clickable.active {
+  box-shadow: 0 0 0 3px #4472C4, 0 4px 12px rgba(68, 114, 196, 0.3);
+  transform: translateY(-2px);
+}
+
 .stat-card h3 {
   font-size: 0.9rem;
   color: #666;

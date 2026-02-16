@@ -1018,23 +1018,38 @@ function Dashboard() {
       {/* Statistics Cards */}
       {statistics && (
         <div className="statistics-grid">
-          <div className="stat-card">
+          <div
+            className={`stat-card clickable ${filters.status === 'all' ? 'active' : ''}`}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'all' }))}
+          >
             <h3>Total Applications</h3>
             <div className="stat-number">{statistics.total}</div>
           </div>
-          <div className="stat-card pending">
+          <div
+            className={`stat-card pending clickable ${filters.status === 'pending' ? 'active' : ''}`}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'pending' }))}
+          >
             <h3>Pending</h3>
             <div className="stat-number">{statistics.pending}</div>
           </div>
-          <div className="stat-card viewed">
+          <div
+            className={`stat-card viewed clickable ${filters.status === 'viewed' ? 'active' : ''}`}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'viewed' }))}
+          >
             <h3>Viewed</h3>
             <div className="stat-number">{statistics.viewed}</div>
           </div>
-          <div className="stat-card approved">
+          <div
+            className={`stat-card approved clickable ${filters.status === 'approved' ? 'active' : ''}`}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'approved' }))}
+          >
             <h3>Approved</h3>
             <div className="stat-number">{statistics.approved}</div>
           </div>
-          <div className="stat-card denied">
+          <div
+            className={`stat-card denied clickable ${filters.status === 'denied' ? 'active' : ''}`}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'denied' }))}
+          >
             <h3>Denied</h3>
             <div className="stat-number">{statistics.denied}</div>
           </div>
@@ -1042,15 +1057,22 @@ function Dashboard() {
             <h3>Total Requested</h3>
             <div className="stat-number">${statistics.totalRequested.toLocaleString()}</div>
           </div>
-          <div className="stat-card approved">
+          <div
+            className={`stat-card approved clickable ${filters.status === 'approved' ? 'active' : ''}`}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'approved' }))}
+          >
             <h3>Total Approved</h3>
             <div className="stat-number">${statistics.totalApproved.toLocaleString()}</div>
           </div>
-          <div className="stat-card" style={{ backgroundColor: '#10b981', color: 'white' }}>
+          <div
+            className="stat-card clickable"
+            style={{ backgroundColor: '#10b981', color: 'white' }}
+            onClick={() => setFilters(prev => ({ ...prev, status: 'approved' }))}
+          >
             <h3>Subsidized Dollars Spent</h3>
             <div className="stat-number">${calculateTotalSubsidizedDollars().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.9 }}>
-              Approved applications only
+              Click to view approved applications
             </div>
           </div>
         </div>
