@@ -425,10 +425,18 @@ app.put('/api/applications/:id', async (req, res) => {
     const params = [];
     let paramIndex = 1;
 
+    // JSONB fields that need to be stringified
+    const jsonbFields = ['phases', 'monthly_breakdown', 'notes'];
+
     for (const [key, value] of Object.entries(snakeData)) {
       if (key !== 'id' && value !== undefined) {
         setClauses.push(`${key} = $${paramIndex}`);
-        params.push(value);
+        // Stringify JSONB fields
+        if (jsonbFields.includes(key) && typeof value === 'object') {
+          params.push(JSON.stringify(value));
+        } else {
+          params.push(value);
+        }
         paramIndex++;
       }
     }
