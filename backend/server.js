@@ -428,8 +428,11 @@ app.put('/api/applications/:id', async (req, res) => {
     // JSONB fields that need to be stringified
     const jsonbFields = ['phases', 'monthly_breakdown', 'notes'];
 
+    // Fields to skip (handled separately or system-managed)
+    const skipFields = ['id', 'updated_at', 'created_at'];
+
     for (const [key, value] of Object.entries(snakeData)) {
-      if (key !== 'id' && value !== undefined) {
+      if (!skipFields.includes(key) && value !== undefined) {
         setClauses.push(`${key} = $${paramIndex}`);
         // Stringify JSONB fields
         if (jsonbFields.includes(key) && typeof value === 'object') {
