@@ -455,7 +455,12 @@ function Dashboard() {
   };
 
   const printApplication = (app) => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('about:blank', '_blank', 'width=800,height=600');
+
+    if (!printWindow) {
+      alert('Unable to open print window. Please allow popups for this site and try again.');
+      return;
+    }
 
     // Calculate totals from monthly breakdown
     let totalVistaCares = 0;
