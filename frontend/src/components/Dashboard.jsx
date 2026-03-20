@@ -1280,6 +1280,14 @@ function Dashboard() {
                             Approve
                           </button>
                         )}
+                        {app.status === 'approved' && (
+                          <button
+                            className="btn-small btn-unapprove"
+                            onClick={() => updateApplicationStatus(app.id, 'pending')}
+                          >
+                            Unapprove
+                          </button>
+                        )}
                         {app.status !== 'denied' && (
                           <button
                             className="btn-small btn-deny"
