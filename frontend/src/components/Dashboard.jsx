@@ -307,11 +307,24 @@ function Dashboard() {
         totalAssistanceRequested
       };
 
+      // Debug logging
+      console.log('=== SAVE DEBUG ===');
+      console.log('editFormData.securityDeposit:', editFormData.securityDeposit);
+      console.log('Calculated securityDeposit:', securityDeposit);
+      console.log('Calculated securityAmount:', securityAmount);
+      console.log('Calculated totalAssistanceRequested:', totalAssistanceRequested);
+      console.log('Full updatedData being sent:', updatedData);
+
       const response = await axios.put(`${API_URL}/applications/${editingApplication.id}`, updatedData);
+
+      console.log('Response from server:', response.data);
+      console.log('Response securityAmount:', response.data.securityAmount);
+      console.log('Response securityDeposit:', response.data.securityDeposit);
 
       // Update selectedApplication if it's the same application being edited
       if (selectedApplication && selectedApplication.id === editingApplication.id) {
         setSelectedApplication(response.data);
+        console.log('Updated selectedApplication with response data');
       }
 
       await fetchApplications();
