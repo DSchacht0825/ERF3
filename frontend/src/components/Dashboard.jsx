@@ -320,15 +320,21 @@ function Dashboard() {
       console.log('Response from server:', response.data);
       console.log('Response securityAmount:', response.data.securityAmount);
       console.log('Response securityDeposit:', response.data.securityDeposit);
+      console.log('Response totalAssistanceRequested:', response.data.totalAssistanceRequested);
 
-      // Update selectedApplication if it's the same application being edited
-      if (selectedApplication && selectedApplication.id === editingApplication.id) {
-        setSelectedApplication(response.data);
-        console.log('Updated selectedApplication with response data');
-      }
+      // Store the updated application data
+      const updatedApp = response.data;
 
       await fetchApplications();
       await fetchStatistics();
+
+      // Always update selectedApplication with the response data after fetching
+      // Use loose equality to handle number/string ID mismatches
+      if (selectedApplication && String(selectedApplication.id) === String(editingApplication.id)) {
+        setSelectedApplication(updatedApp);
+        console.log('Updated selectedApplication with:', updatedApp);
+      }
+
       closeEditModal();
       alert('Application updated successfully');
     } catch (error) {
@@ -728,7 +734,7 @@ function Dashboard() {
             </div>
             <div class="financial-item">
               <div class="label">Total Assistance Requested</div>
-              <div class="value blue">${formatCurrency(app.totalAssistanceRequested)}</div>
+              <div class="value blue">${formatCurrency(totalVistaCares + (app.includeSecurityDeposit === 'Yes' ? (parseFloat(app.securityDeposit) || 0) : 0))}</div>
             </div>
           </div>
           <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
@@ -742,7 +748,7 @@ function Dashboard() {
             </div>
             <div class="financial-item">
               <div class="label">Security Amount</div>
-              <div class="value">${app.securityAmount ? formatCurrency(app.securityAmount) : 'N/A'}</div>
+              <div class="value">${app.includeSecurityDeposit === 'Yes' ? formatCurrency(app.securityDeposit) : 'N/A'}</div>
             </div>
           </div>
         </div>
@@ -2006,13 +2012,25 @@ function Dashboard() {
                 </div>
                 <div><strong>Program Duration:</strong> {selectedApplication.totalMonths || 'N/A'} months</div>
                 <div><strong>Security Deposit Included:</strong> {selectedApplication.includeSecurityDeposit || 'N/A'}</div>
-                {selectedApplication.securityAmount && (
-                  <div><strong>Security Deposit Amount:</strong> ${parseFloat(selectedApplication.securityAmount).toFixed(2)}</div>
+                {selectedApplication.includeSecurityDeposit === 'Yes' && selectedApplication.securityDeposit && (
+                  <div><strong>Security Deposit Amount:</strong> ${parseFloat(selectedApplication.securityDeposit).toFixed(2)}</div>
                 )}
                 <div style={{ fontSize: '1.1rem' }}>
                   <strong>Total Assistance Requested:</strong>
                   <span style={{ color: '#1e40af', fontWeight: 'bold', marginLeft: '0.5rem' }}>
-                    ${parseFloat(selectedApplication.totalAssistanceRequested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${(() => {
+                      // Calculate total: rental assistance + security deposit (if included)
+                      let rental = 0;
+                      if (selectedApplication.monthlyBreakdown && selectedApplication.monthlyBreakdown.length > 0) {
+                        rental = selectedApplication.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
+                      } else {
+                        rental = parseFloat(selectedApplication.totalRentalAssistance) || 0;
+                      }
+                      const secDep = selectedApplication.includeSecurityDeposit === 'Yes'
+                        ? (parseFloat(selectedApplication.securityDeposit) || 0)
+                        : 0;
+                      return (rental + secDep).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()}
                   </span>
                 </div>
               </div>
