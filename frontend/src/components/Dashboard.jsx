@@ -267,7 +267,7 @@ function Dashboard() {
         });
       }
 
-      // Calculate security amount
+      // Calculate security amount - sanitize to handle NaN
       const securityDeposit = parseFloat(editFormData.securityDeposit) || 0;
       const securityAmount = editFormData.includeSecurityDeposit === 'Yes' ? securityDeposit : 0;
 
@@ -275,8 +275,10 @@ function Dashboard() {
       const totalAssistanceRequested = totalRentalAssistance + securityAmount;
 
       // Update editFormData with recalculated values
+      // Explicitly include securityDeposit to ensure it's saved properly (handles NaN case)
       const updatedData = {
         ...editFormData,
+        securityDeposit,
         totalMonths,
         totalRentalAssistance,
         securityAmount,
