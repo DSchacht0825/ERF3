@@ -239,7 +239,29 @@ function Dashboard() {
   };
 
   const handleEditChange = (field, value) => {
-    setEditFormData(prev => ({ ...prev, [field]: value }));
+    setEditFormData(prev => {
+      const updated = { ...prev, [field]: value };
+
+      // Auto-recalculate security amount and totals when security deposit changes
+      if (field === 'securityDeposit' || field === 'includeSecurityDeposit') {
+        const securityDep = parseFloat(field === 'securityDeposit' ? value : updated.securityDeposit) || 0;
+        const includeSecDep = field === 'includeSecurityDeposit' ? value : updated.includeSecurityDeposit;
+        const newSecurityAmount = includeSecDep === 'Yes' ? securityDep : 0;
+
+        // Calculate totalRentalAssistance from monthlyBreakdown or phases
+        let totalRental = 0;
+        if (updated.monthlyBreakdown && updated.monthlyBreakdown.length > 0) {
+          totalRental = updated.monthlyBreakdown.reduce((sum, m) => sum + (parseFloat(m.assistance) || 0), 0);
+        } else if (updated.totalRentalAssistance) {
+          totalRental = parseFloat(updated.totalRentalAssistance) || 0;
+        }
+
+        updated.securityAmount = newSecurityAmount;
+        updated.totalAssistanceRequested = totalRental + newSecurityAmount;
+      }
+
+      return updated;
+    });
   };
 
   const saveEditedApplication = async () => {
@@ -1781,6 +1803,16 @@ function Dashboard() {
                       step="0.01"
                       value={editFormData.totalRentalAssistance || ''}
                       onChange={(e) => handleEditChange('totalRentalAssistance', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Security Amount (from Security Deposit):</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.securityAmount || ''}
+                      onChange={(e) => handleEditChange('securityAmount', parseFloat(e.target.value))}
                       style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                     />
                   </div>
