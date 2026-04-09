@@ -246,7 +246,44 @@ function Dashboard() {
     if (!editingApplication) return;
 
     try {
-      await axios.put(`${API_URL}/applications/${editingApplication.id}`, editFormData);
+      // Recalculate totals before saving
+      let totalRentalAssistance = 0;
+      let totalMonths = 0;
+
+      // Calculate from monthlyBreakdown if available
+      if (editFormData.monthlyBreakdown && editFormData.monthlyBreakdown.length > 0) {
+        totalRentalAssistance = editFormData.monthlyBreakdown.reduce(
+          (sum, month) => sum + (parseFloat(month.assistance) || 0), 0
+        );
+        totalMonths = editFormData.monthlyBreakdown.length;
+      }
+      // Otherwise calculate from phases
+      else if (editFormData.phases && editFormData.phases.length > 0) {
+        const rent = parseFloat(editFormData.monthlyRent) || 0;
+        editFormData.phases.forEach(phase => {
+          const assistancePerMonth = rent * (phase.percentage / 100);
+          totalRentalAssistance += assistancePerMonth * phase.months;
+          totalMonths += phase.months;
+        });
+      }
+
+      // Calculate security amount
+      const securityDeposit = parseFloat(editFormData.securityDeposit) || 0;
+      const securityAmount = editFormData.includeSecurityDeposit === 'Yes' ? securityDeposit : 0;
+
+      // Calculate total assistance requested
+      const totalAssistanceRequested = totalRentalAssistance + securityAmount;
+
+      // Update editFormData with recalculated values
+      const updatedData = {
+        ...editFormData,
+        totalMonths,
+        totalRentalAssistance,
+        securityAmount,
+        totalAssistanceRequested
+      };
+
+      await axios.put(`${API_URL}/applications/${editingApplication.id}`, updatedData);
       await fetchApplications();
       await fetchStatistics();
       closeEditModal();
