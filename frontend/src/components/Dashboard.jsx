@@ -285,7 +285,13 @@ function Dashboard() {
         totalAssistanceRequested
       };
 
-      await axios.put(`${API_URL}/applications/${editingApplication.id}`, updatedData);
+      const response = await axios.put(`${API_URL}/applications/${editingApplication.id}`, updatedData);
+
+      // Update selectedApplication if it's the same application being edited
+      if (selectedApplication && selectedApplication.id === editingApplication.id) {
+        setSelectedApplication(response.data);
+      }
+
       await fetchApplications();
       await fetchStatistics();
       closeEditModal();
