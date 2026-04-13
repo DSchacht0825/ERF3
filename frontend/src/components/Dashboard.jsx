@@ -190,7 +190,35 @@ function Dashboard() {
   };
 
   const viewApplication = (app) => {
-    setSelectedApplication(app);
+    // Regenerate monthlyBreakdown from phases to ensure consistency
+    const appCopy = { ...app };
+    if (appCopy.phases && appCopy.phases.length > 0) {
+      const rent = parseFloat(appCopy.monthlyRent) || 0;
+      const newBreakdown = [];
+      let monthCounter = 1;
+
+      appCopy.phases.forEach((phase, idx) => {
+        for (let i = 0; i < phase.months; i++) {
+          const assistance = rent * (phase.percentage / 100);
+          const clientPays = rent - assistance;
+
+          newBreakdown.push({
+            month: monthCounter,
+            phase: phase.name || `Phase ${idx + 1}`,
+            percentage: phase.percentage,
+            rent,
+            assistance,
+            clientPays
+          });
+
+          monthCounter++;
+        }
+      });
+
+      appCopy.monthlyBreakdown = newBreakdown;
+    }
+
+    setSelectedApplication(appCopy);
     if (app.status === 'pending') {
       updateApplicationStatus(app.id, 'viewed');
     }
@@ -228,7 +256,46 @@ function Dashboard() {
 
   const openEditModal = (app) => {
     setEditingApplication(app);
-    setEditFormData({ ...app });
+
+    // Regenerate monthlyBreakdown from phases to ensure consistency
+    const appCopy = { ...app };
+    if (appCopy.phases && appCopy.phases.length > 0) {
+      const rent = parseFloat(appCopy.monthlyRent) || 0;
+      const newBreakdown = [];
+      let monthCounter = 1;
+
+      appCopy.phases.forEach((phase, idx) => {
+        for (let i = 0; i < phase.months; i++) {
+          const assistance = rent * (phase.percentage / 100);
+          const clientPays = rent - assistance;
+
+          newBreakdown.push({
+            month: monthCounter,
+            phase: phase.name || `Phase ${idx + 1}`,
+            percentage: phase.percentage,
+            rent,
+            assistance,
+            clientPays
+          });
+
+          monthCounter++;
+        }
+      });
+
+      appCopy.monthlyBreakdown = newBreakdown;
+
+      // Recalculate totals
+      const totalRental = newBreakdown.reduce((sum, m) => sum + m.assistance, 0);
+      const securityAmount = appCopy.includeSecurityDeposit === 'Yes'
+        ? (parseFloat(appCopy.securityDeposit) || 0)
+        : 0;
+
+      appCopy.totalRentalAssistance = totalRental;
+      appCopy.totalMonths = newBreakdown.length;
+      appCopy.totalAssistanceRequested = totalRental + securityAmount;
+    }
+
+    setEditFormData(appCopy);
     setShowEditModal(true);
   };
 
@@ -241,6 +308,47 @@ function Dashboard() {
   const handleEditChange = (field, value) => {
     setEditFormData(prev => {
       const updated = { ...prev, [field]: value };
+
+      // Auto-regenerate monthlyBreakdown when phases or monthlyRent changes
+      if (field === 'phases' || field === 'monthlyRent') {
+        const phases = field === 'phases' ? value : updated.phases;
+        const rent = parseFloat(field === 'monthlyRent' ? value : updated.monthlyRent) || 0;
+
+        if (phases && phases.length > 0) {
+          const newBreakdown = [];
+          let monthCounter = 1;
+
+          phases.forEach(phase => {
+            for (let i = 0; i < phase.months; i++) {
+              const assistance = rent * (phase.percentage / 100);
+              const clientPays = rent - assistance;
+
+              newBreakdown.push({
+                month: monthCounter,
+                phase: phase.name || `Phase ${phases.indexOf(phase) + 1}`,
+                percentage: phase.percentage,
+                rent,
+                assistance,
+                clientPays
+              });
+
+              monthCounter++;
+            }
+          });
+
+          updated.monthlyBreakdown = newBreakdown;
+
+          // Recalculate totals
+          const totalRental = newBreakdown.reduce((sum, m) => sum + m.assistance, 0);
+          const securityAmount = updated.includeSecurityDeposit === 'Yes'
+            ? (parseFloat(updated.securityDeposit) || 0)
+            : 0;
+
+          updated.totalRentalAssistance = totalRental;
+          updated.totalMonths = newBreakdown.length;
+          updated.totalAssistanceRequested = totalRental + securityAmount;
+        }
+      }
 
       // Auto-recalculate security amount and totals when security deposit changes
       if (field === 'securityDeposit' || field === 'includeSecurityDeposit') {
