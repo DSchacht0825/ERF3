@@ -4,7 +4,7 @@ import '../styles/Dashboard.css';
 import { API_URL } from '../config';
 
 // Total Vista CAREs budget
-const TOTAL_BUDGET = 2781345.02;
+const TOTAL_BUDGET = 2580187.75;
 
 function Dashboard() {
   const [applications, setApplications] = useState([]);
