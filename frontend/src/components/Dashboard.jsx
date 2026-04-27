@@ -22,6 +22,9 @@ function Dashboard() {
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [expandedBudgetApp, setExpandedBudgetApp] = useState(null);
   const [budgetEditData, setBudgetEditData] = useState(null);
+  const [showReferralsModal, setShowReferralsModal] = useState(false);
+  const [referralsData, setReferralsData] = useState([]);
+  const [referralsDateFilter, setReferralsDateFilter] = useState({ dateFrom: '', dateTo: '' });
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -80,6 +83,33 @@ function Dashboard() {
     } catch (error) {
       console.error('Error fetching statistics:', error);
     }
+  };
+
+  const fetchReferrals = async (dateFrom = '', dateTo = '') => {
+    try {
+      let url = `${API_URL}/referrals`;
+      if (dateFrom && dateTo) {
+        url += `?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+      }
+      const response = await axios.get(url);
+      setReferralsData(response.data);
+    } catch (error) {
+      console.error('Error fetching referrals:', error);
+    }
+  };
+
+  const openReferralsModal = () => {
+    fetchReferrals();
+    setShowReferralsModal(true);
+  };
+
+  const handleReferralsDateFilter = () => {
+    fetchReferrals(referralsDateFilter.dateFrom, referralsDateFilter.dateTo);
+  };
+
+  const clearReferralsDateFilter = () => {
+    setReferralsDateFilter({ dateFrom: '', dateTo: '' });
+    fetchReferrals();
   };
 
   const applyFilters = () => {
@@ -1272,6 +1302,17 @@ function Dashboard() {
             <div className="stat-number">${calculateTotalSubsidizedDollars().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.9 }}>
               Click to view approved applications
+            </div>
+          </div>
+          <div
+            className="stat-card clickable"
+            style={{ backgroundColor: '#8b5cf6', color: 'white' }}
+            onClick={openReferralsModal}
+          >
+            <h3>Referrals</h3>
+            <div className="stat-number">{statistics.total}</div>
+            <div style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.9 }}>
+              Click to view by agency
             </div>
           </div>
         </div>
@@ -2642,6 +2683,121 @@ function Dashboard() {
 
             <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
               <button className="btn btn-secondary" onClick={() => setShowBudgetModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Referrals Modal */}
+      {showReferralsModal && (
+        <div className="modal-overlay" onClick={() => setShowReferralsModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '900px', maxHeight: '85vh' }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ marginBottom: '1rem', color: '#8b5cf6' }}>Referrals by Agency</h2>
+
+            {/* Date Filter */}
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              marginBottom: '1.5rem',
+              padding: '1rem',
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              alignItems: 'flex-end',
+              flexWrap: 'wrap'
+            }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.85rem', fontWeight: '500' }}>From Date</label>
+                <input
+                  type="date"
+                  value={referralsDateFilter.dateFrom}
+                  onChange={(e) => setReferralsDateFilter(prev => ({ ...prev, dateFrom: e.target.value }))}
+                  style={{ padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.85rem', fontWeight: '500' }}>To Date</label>
+                <input
+                  type="date"
+                  value={referralsDateFilter.dateTo}
+                  onChange={(e) => setReferralsDateFilter(prev => ({ ...prev, dateTo: e.target.value }))}
+                  style={{ padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                />
+              </div>
+              <button
+                className="btn btn-primary"
+                onClick={handleReferralsDateFilter}
+                style={{ backgroundColor: '#8b5cf6' }}
+              >
+                Filter
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={clearReferralsDateFilter}
+              >
+                Clear
+              </button>
+            </div>
+
+            {/* Referrals Table */}
+            <div style={{ overflowY: 'auto', maxHeight: '55vh' }}>
+              <table className="applications-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Agency</th>
+                    <th>Case Manager</th>
+                    <th>Program</th>
+                    <th style={{ textAlign: 'center' }}>Total</th>
+                    <th style={{ textAlign: 'center' }}>Approved</th>
+                    <th style={{ textAlign: 'center' }}>Denied</th>
+                    <th style={{ textAlign: 'center' }}>Pending</th>
+                    <th style={{ textAlign: 'right' }}>Approved $</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {referralsData.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                        No referrals found for the selected date range
+                      </td>
+                    </tr>
+                  ) : (
+                    referralsData.map((ref, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: '500' }}>{ref.agencyName}</td>
+                        <td>{ref.caseManagerName}</td>
+                        <td>{ref.referringProgram}</td>
+                        <td style={{ textAlign: 'center', fontWeight: '600' }}>{ref.totalReferrals}</td>
+                        <td style={{ textAlign: 'center', color: '#059669' }}>{ref.approved}</td>
+                        <td style={{ textAlign: 'center', color: '#dc2626' }}>{ref.denied}</td>
+                        <td style={{ textAlign: 'center', color: '#f59e0b' }}>{ref.pending}</td>
+                        <td style={{ textAlign: 'right', fontWeight: '500', color: '#059669' }}>
+                          ${ref.totalApprovedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+                {referralsData.length > 0 && (
+                  <tfoot>
+                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f1f5f9' }}>
+                      <td colSpan="3" style={{ textAlign: 'right', padding: '0.75rem' }}>Totals:</td>
+                      <td style={{ textAlign: 'center' }}>{referralsData.reduce((sum, r) => sum + r.totalReferrals, 0)}</td>
+                      <td style={{ textAlign: 'center', color: '#059669' }}>{referralsData.reduce((sum, r) => sum + r.approved, 0)}</td>
+                      <td style={{ textAlign: 'center', color: '#dc2626' }}>{referralsData.reduce((sum, r) => sum + r.denied, 0)}</td>
+                      <td style={{ textAlign: 'center', color: '#f59e0b' }}>{referralsData.reduce((sum, r) => sum + r.pending, 0)}</td>
+                      <td style={{ textAlign: 'right', color: '#059669' }}>
+                        ${referralsData.reduce((sum, r) => sum + r.totalApprovedAmount, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
+              <button className="btn btn-secondary" onClick={() => setShowReferralsModal(false)}>
                 Close
               </button>
             </div>

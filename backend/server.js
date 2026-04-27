@@ -520,6 +520,65 @@ app.get('/api/statistics', async (req, res) => {
   }
 });
 
+// Get referral statistics (grouped by agency)
+app.get('/api/referrals', async (req, res) => {
+  try {
+    const { dateFrom, dateTo } = req.query;
+
+    let query;
+    if (dateFrom && dateTo) {
+      query = sql`
+        SELECT
+          agency_name,
+          case_manager_name,
+          referring_program,
+          COUNT(*) as total_referrals,
+          COUNT(*) FILTER (WHERE status = 'approved') as approved,
+          COUNT(*) FILTER (WHERE status = 'denied') as denied,
+          COUNT(*) FILTER (WHERE status IN ('pending', 'viewed')) as pending,
+          COALESCE(SUM(total_assistance_requested) FILTER (WHERE status = 'approved'), 0) as total_approved_amount
+        FROM applications
+        WHERE referral_date >= ${dateFrom} AND referral_date <= ${dateTo}
+        GROUP BY agency_name, case_manager_name, referring_program
+        ORDER BY total_referrals DESC
+      `;
+    } else {
+      query = sql`
+        SELECT
+          agency_name,
+          case_manager_name,
+          referring_program,
+          COUNT(*) as total_referrals,
+          COUNT(*) FILTER (WHERE status = 'approved') as approved,
+          COUNT(*) FILTER (WHERE status = 'denied') as denied,
+          COUNT(*) FILTER (WHERE status IN ('pending', 'viewed')) as pending,
+          COALESCE(SUM(total_assistance_requested) FILTER (WHERE status = 'approved'), 0) as total_approved_amount
+        FROM applications
+        GROUP BY agency_name, case_manager_name, referring_program
+        ORDER BY total_referrals DESC
+      `;
+    }
+
+    const result = await query;
+
+    const referrals = result.map(row => ({
+      agencyName: row.agency_name || 'Unknown Agency',
+      caseManagerName: row.case_manager_name || 'Unknown',
+      referringProgram: row.referring_program || 'N/A',
+      totalReferrals: parseInt(row.total_referrals),
+      approved: parseInt(row.approved),
+      denied: parseInt(row.denied),
+      pending: parseInt(row.pending),
+      totalApprovedAmount: parseFloat(row.total_approved_amount)
+    }));
+
+    res.json(referrals);
+  } catch (error) {
+    console.error('Error fetching referrals:', error);
+    res.status(500).json({ error: 'Failed to fetch referrals', details: error.message });
+  }
+});
+
 // Initialize database and start server
 if (process.env.NODE_ENV !== 'production') {
   // Local development
