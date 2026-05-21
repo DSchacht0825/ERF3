@@ -176,8 +176,10 @@ function ApplicationForm() {
     console.log('Form submit triggered. Current tab:', currentTab, 'Last tab index:', tabs.length - 1, 'Just navigated:', justNavigated);
 
     // CRITICAL: Only submit if on the LAST tab (tab 4 - Landlord & Approval)
-    if (currentTab !== tabs.length - 1) {
-      console.log('Not on last tab - preventing submission');
+    // Double-check with explicit value in case of state issues
+    const lastTabIndex = 4;
+    if (currentTab !== lastTabIndex) {
+      console.log('Not on last tab - preventing submission. Current:', currentTab, 'Required:', lastTabIndex);
       return false;
     }
 
@@ -1039,7 +1041,9 @@ function ApplicationForm() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const nextTab = currentTab + 1;
                 setCurrentTab(nextTab);
                 // Set flag if navigating to the last tab
