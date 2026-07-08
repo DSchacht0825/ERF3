@@ -22,6 +22,11 @@ function Dashboard() {
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [expandedBudgetApp, setExpandedBudgetApp] = useState(null);
   const [budgetEditData, setBudgetEditData] = useState(null);
+  const [showFurnitureModal, setShowFurnitureModal] = useState(false);
+  const [editingFurnitureAppId, setEditingFurnitureAppId] = useState(null);
+  const [furnitureEditValue, setFurnitureEditValue] = useState('');
+  const [furniturePopupApp, setFurniturePopupApp] = useState(null);
+  const [furniturePopupValue, setFurniturePopupValue] = useState('');
   const [showReferralsModal, setShowReferralsModal] = useState(false);
   const [referralsData, setReferralsData] = useState([]);
   const [referralsDateFilter, setReferralsDateFilter] = useState({ dateFrom: '', dateTo: '' });
@@ -522,7 +527,21 @@ function Dashboard() {
     return total;
   };
 
-  const budgetSpent = calculateBudgetSpent();
+  // Calculate furniture money spent from ALL approved applications
+  const calculateFurnitureSpent = () => {
+    const approvedApps = applications.filter(app => app.status === 'approved');
+
+    let total = 0;
+    approvedApps.forEach(app => {
+      total += parseFloat(app.furnitureAmount) || 0;
+    });
+
+    return total;
+  };
+
+  const furnitureSpent = calculateFurnitureSpent();
+  // Furniture money draws from the same shared budget pool as rental assistance
+  const budgetSpent = calculateBudgetSpent() + furnitureSpent;
   const budgetRemaining = TOTAL_BUDGET - budgetSpent;
   const budgetPercentUsed = (budgetSpent / TOTAL_BUDGET) * 100;
 
@@ -542,6 +561,70 @@ function Dashboard() {
         return { ...app, assistanceAmount };
       })
       .sort((a, b) => new Date(b.approvalDate || b.submittedDate) - new Date(a.approvalDate || a.submittedDate));
+  };
+
+  // Get approved applications with furniture amounts for the furniture money modal
+  const getApprovedApplicationsWithFurnitureAmounts = () => {
+    return applications
+      .filter(app => app.status === 'approved' && (parseFloat(app.furnitureAmount) || 0) > 0)
+      .map(app => ({ ...app, furnitureAmount: parseFloat(app.furnitureAmount) || 0 }))
+      .sort((a, b) => new Date(b.approvalDate || b.submittedDate) - new Date(a.approvalDate || a.submittedDate));
+  };
+
+  // Start inline edit of a furniture amount
+  const startEditFurnitureAmount = (app) => {
+    setEditingFurnitureAppId(app.id);
+    setFurnitureEditValue(app.furnitureAmount || 0);
+  };
+
+  const cancelEditFurnitureAmount = () => {
+    setEditingFurnitureAppId(null);
+    setFurnitureEditValue('');
+  };
+
+  // Save an edited furniture amount
+  const saveFurnitureAmount = async (appId) => {
+    try {
+      const furnitureAmount = parseFloat(furnitureEditValue) || 0;
+      await axios.put(`${API_URL}/applications/${appId}`, { furnitureAmount });
+
+      await fetchApplications();
+      await fetchStatistics();
+
+      setEditingFurnitureAppId(null);
+      setFurnitureEditValue('');
+    } catch (error) {
+      console.error('Error saving furniture amount:', error);
+      alert('Failed to save furniture amount. Please try again.');
+    }
+  };
+
+  // Quick-add popup: open/close/save a furniture amount for a single client
+  const openFurniturePopup = (app) => {
+    setFurniturePopupApp(app);
+    setFurniturePopupValue(app.furnitureAmount || '');
+  };
+
+  const closeFurniturePopup = () => {
+    setFurniturePopupApp(null);
+    setFurniturePopupValue('');
+  };
+
+  const saveFurniturePopupAmount = async () => {
+    if (!furniturePopupApp) return;
+
+    try {
+      const furnitureAmount = parseFloat(furniturePopupValue) || 0;
+      await axios.put(`${API_URL}/applications/${furniturePopupApp.id}`, { furnitureAmount });
+
+      await fetchApplications();
+      await fetchStatistics();
+
+      closeFurniturePopup();
+    } catch (error) {
+      console.error('Error saving furniture amount:', error);
+      alert('Failed to save furniture amount. Please try again.');
+    }
   };
 
   // Toggle expand/collapse for budget editing
@@ -1306,6 +1389,17 @@ function Dashboard() {
           </div>
           <div
             className="stat-card clickable"
+            style={{ backgroundColor: '#f59e0b', color: 'white' }}
+            onClick={() => setShowFurnitureModal(true)}
+          >
+            <h3>Furniture Money</h3>
+            <div className="stat-number">${furnitureSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.9 }}>
+              Click to view by client
+            </div>
+          </div>
+          <div
+            className="stat-card clickable"
             style={{ backgroundColor: '#8b5cf6', color: 'white' }}
             onClick={openReferralsModal}
           >
@@ -1523,6 +1617,15 @@ function Dashboard() {
                             Unapprove
                           </button>
                         )}
+                        {app.status === 'approved' && (
+                          <button
+                            className="btn-small"
+                            style={{ backgroundColor: '#f59e0b', color: 'white' }}
+                            onClick={() => openFurniturePopup(app)}
+                          >
+                            Furniture
+                          </button>
+                        )}
                         {app.status !== 'denied' && (
                           <button
                             className="btn-small btn-deny"
@@ -1709,6 +1812,16 @@ function Dashboard() {
                       step="0.01"
                       value={editFormData.securityDeposit || ''}
                       onChange={(e) => handleEditChange('securityDeposit', parseFloat(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label><strong>Furniture Amount:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.furnitureAmount || ''}
+                      onChange={(e) => handleEditChange('furnitureAmount', parseFloat(e.target.value))}
                       style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                     />
                   </div>
@@ -2164,6 +2277,9 @@ function Dashboard() {
                 {selectedApplication.includeSecurityDeposit === 'Yes' && selectedApplication.securityDeposit && (
                   <div><strong>Security Deposit Amount:</strong> ${parseFloat(selectedApplication.securityDeposit).toFixed(2)}</div>
                 )}
+                {parseFloat(selectedApplication.furnitureAmount) > 0 && (
+                  <div><strong>Furniture Amount:</strong> ${parseFloat(selectedApplication.furnitureAmount).toFixed(2)}</div>
+                )}
                 <div style={{ fontSize: '1.1rem' }}>
                   <strong>Total Assistance Requested:</strong>
                   <span style={{ color: '#1e40af', fontWeight: 'bold', marginLeft: '0.5rem' }}>
@@ -2542,15 +2658,24 @@ function Dashboard() {
                                 : app.assistanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                             <td>
-                              <button
-                                className="btn-small btn-view"
-                                onClick={() => {
-                                  setShowBudgetModal(false);
-                                  viewApplication(app);
-                                }}
-                              >
-                                View
-                              </button>
+                              <div className="action-buttons">
+                                <button
+                                  className="btn-small btn-view"
+                                  onClick={() => {
+                                    setShowBudgetModal(false);
+                                    viewApplication(app);
+                                  }}
+                                >
+                                  View
+                                </button>
+                                <button
+                                  className="btn-small"
+                                  style={{ backgroundColor: '#f59e0b', color: 'white' }}
+                                  onClick={() => openFurniturePopup(app)}
+                                >
+                                  Furniture
+                                </button>
+                              </div>
                             </td>
                           </tr>
                           {/* Expanded Edit Row */}
@@ -2684,6 +2809,167 @@ function Dashboard() {
             <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
               <button className="btn btn-secondary" onClick={() => setShowBudgetModal(false)}>
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Furniture Money Modal - Approved Applicants */}
+      {showFurnitureModal && (
+        <div className="modal-overlay" onClick={() => setShowFurnitureModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh' }}>
+            <button className="modal-close" onClick={() => setShowFurnitureModal(false)}>×</button>
+
+            <h2 style={{ marginBottom: '0.5rem' }}>Furniture Money - Approved Applicants</h2>
+            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.5rem' }}>
+              Furniture money is drawn from the shared Vista CAREs budget shown on the main tracker above.
+            </p>
+
+            {/* Furniture Summary */}
+            <div style={{
+              background: 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              color: 'white',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Total Furniture Spent</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
+                ${furnitureSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </div>
+
+            {/* Approved Applicants with Furniture Amounts */}
+            <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+              <h3 style={{ marginBottom: '1rem' }}>
+                Clients ({getApprovedApplicationsWithFurnitureAmounts().length})
+              </h3>
+
+              {getApprovedApplicationsWithFurnitureAmounts().length > 0 ? (
+                <table className="applications-table">
+                  <thead style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 10 }}>
+                    <tr>
+                      <th>Application ID</th>
+                      <th>Applicant Name</th>
+                      <th>Agency</th>
+                      <th style={{ textAlign: 'right' }}>Furniture Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getApprovedApplicationsWithFurnitureAmounts().map(app => (
+                      <tr key={app.id}>
+                        <td style={{ fontWeight: '500' }}>{app.applicationId}</td>
+                        <td>{app.applicantName}</td>
+                        <td>{app.agencyName}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#b45309' }}>
+                          {editingFurnitureAppId === app.id ? (
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={furnitureEditValue}
+                              onChange={(e) => setFurnitureEditValue(e.target.value)}
+                              style={{ width: '110px', padding: '0.35rem', textAlign: 'right' }}
+                            />
+                          ) : (
+                            `$${app.furnitureAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          )}
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            {editingFurnitureAppId === app.id ? (
+                              <>
+                                <button className="btn-small btn-approve" onClick={() => saveFurnitureAmount(app.id)}>
+                                  Save
+                                </button>
+                                <button className="btn-small btn-secondary" onClick={cancelEditFurnitureAmount}>
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  className="btn-small"
+                                  style={{ backgroundColor: '#3b82f6', color: 'white' }}
+                                  onClick={() => startEditFurnitureAmount(app)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="btn-small btn-view"
+                                  onClick={() => {
+                                    setShowFurnitureModal(false);
+                                    viewApplication(app);
+                                  }}
+                                >
+                                  View
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f3f4f6' }}>
+                      <td colSpan="3" style={{ textAlign: 'right' }}>Total:</td>
+                      <td style={{ textAlign: 'right', color: '#b45309', fontSize: '1.1rem' }}>
+                        ${furnitureSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛋️</div>
+                  <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No furniture money spent yet</p>
+                  <p style={{ fontSize: '0.9rem' }}>Add a Furniture Amount when editing an approved application to see it here</p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
+              <button className="btn btn-secondary" onClick={() => setShowFurnitureModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Furniture Amount Quick-Add Popup */}
+      {furniturePopupApp && (
+        <div className="modal-overlay" onClick={closeFurniturePopup}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <button className="modal-close" onClick={closeFurniturePopup}>×</button>
+
+            <h2 style={{ marginBottom: '0.25rem' }}>Furniture Money</h2>
+            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.25rem' }}>
+              {furniturePopupApp.applicantName} — {furniturePopupApp.applicationId}
+            </p>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label><strong>Amount Spent on Furniture:</strong></label>
+              <input
+                type="number"
+                step="0.01"
+                autoFocus
+                value={furniturePopupValue}
+                onChange={(e) => setFurniturePopupValue(e.target.value)}
+                style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem', fontSize: '1.1rem' }}
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn btn-success" onClick={saveFurniturePopupAmount}>
+                Save
+              </button>
+              <button className="btn btn-secondary" onClick={closeFurniturePopup}>
+                Cancel
               </button>
             </div>
           </div>

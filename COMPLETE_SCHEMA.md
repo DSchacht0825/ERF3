@@ -64,6 +64,7 @@ CREATE TABLE applications (
   monthly_rent DECIMAL(10, 2),
   security_deposit DECIMAL(10, 2),
   include_security_deposit VARCHAR(10),
+  furniture_amount DECIMAL(10, 2),
   current_income DECIMAL(10, 2),
   projected_income DECIMAL(10, 2),
   primary_income_source VARCHAR(255),

@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS applications (
   property_zip VARCHAR(10),
   rent_amount DECIMAL(10, 2),
   security_deposit DECIMAL(10, 2),
+  furniture_amount DECIMAL(10, 2),
   landlord_agreed BOOLEAN,
   landlord_agreement_signed VARCHAR(10),
   w9_on_file VARCHAR(10),

@@ -169,6 +169,7 @@ async function initializeDatabase() {
         property_zip VARCHAR(10),
         rent_amount DECIMAL(10, 2),
         security_deposit DECIMAL(10, 2),
+        furniture_amount DECIMAL(10, 2),
         landlord_agreed BOOLEAN,
         landlord_agreement_signed VARCHAR(10),
         w9_on_file VARCHAR(10),
@@ -238,6 +239,7 @@ async function initializeDatabase() {
       { name: 'payment_address', type: 'TEXT' },
       { name: 'w9_on_file', type: 'VARCHAR(10)' },
       { name: 'landlord_agreement_signed', type: 'VARCHAR(10)' },
+      { name: 'furniture_amount', type: 'DECIMAL(10, 2)' },
     ];
 
     for (const col of missingColumns) {
