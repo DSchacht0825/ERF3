@@ -52,6 +52,7 @@ function Dashboard() {
     status: true,
     submittedDate: true,
     totalAssistanceRequested: true,
+    proratedAmount: false,
     currentIncome: false,
     householdSize: false,
     monthlyRent: false,
@@ -325,9 +326,10 @@ function Dashboard() {
         ? (parseFloat(appCopy.securityDeposit) || 0)
         : 0;
 
+      const proratedAmount = parseFloat(appCopy.proratedAmount) || 0;
       appCopy.totalRentalAssistance = totalRental;
       appCopy.totalMonths = newBreakdown.length;
-      appCopy.totalAssistanceRequested = totalRental + securityAmount;
+      appCopy.totalAssistanceRequested = totalRental + securityAmount + proratedAmount;
     }
 
     setEditFormData(appCopy);
@@ -381,7 +383,7 @@ function Dashboard() {
 
           updated.totalRentalAssistance = totalRental;
           updated.totalMonths = newBreakdown.length;
-          updated.totalAssistanceRequested = totalRental + securityAmount;
+          updated.totalAssistanceRequested = totalRental + securityAmount + (parseFloat(updated.proratedAmount) || 0);
         }
       }
 
@@ -400,7 +402,22 @@ function Dashboard() {
         }
 
         updated.securityAmount = newSecurityAmount;
-        updated.totalAssistanceRequested = totalRental + newSecurityAmount;
+        updated.totalAssistanceRequested = totalRental + newSecurityAmount + (parseFloat(updated.proratedAmount) || 0);
+      }
+
+      // Recalculate total when the pro-rated amount changes
+      if (field === 'proratedAmount') {
+        const prorated = parseFloat(value) || 0;
+        let totalRental = 0;
+        if (updated.monthlyBreakdown && updated.monthlyBreakdown.length > 0) {
+          totalRental = updated.monthlyBreakdown.reduce((sum, m) => sum + (parseFloat(m.assistance) || 0), 0);
+        } else if (updated.totalRentalAssistance) {
+          totalRental = parseFloat(updated.totalRentalAssistance) || 0;
+        }
+        const secAmt = updated.includeSecurityDeposit === 'Yes'
+          ? (parseFloat(updated.securityDeposit) || 0)
+          : 0;
+        updated.totalAssistanceRequested = totalRental + secAmt + prorated;
       }
 
       return updated;
@@ -436,14 +453,18 @@ function Dashboard() {
       const securityDeposit = parseFloat(editFormData.securityDeposit) || 0;
       const securityAmount = editFormData.includeSecurityDeposit === 'Yes' ? securityDeposit : 0;
 
+      // Pro-rated first-month rent is added to the total Vista CAREs subsidy
+      const proratedAmount = parseFloat(editFormData.proratedAmount) || 0;
+
       // Calculate total assistance requested
-      const totalAssistanceRequested = totalRentalAssistance + securityAmount;
+      const totalAssistanceRequested = totalRentalAssistance + securityAmount + proratedAmount;
 
       // Update editFormData with recalculated values
       // Explicitly include securityDeposit to ensure it's saved properly (handles NaN case)
       const updatedData = {
         ...editFormData,
         securityDeposit,
+        proratedAmount,
         totalMonths,
         totalRentalAssistance,
         securityAmount,
@@ -503,6 +524,8 @@ function Dashboard() {
         // Final fallback
         total += parseFloat(app.totalAssistanceRequested);
       }
+      // Pro-rated first-month rent is paid out of the same subsidy pool
+      total += parseFloat(app.proratedAmount) || 0;
     });
 
     return total;
@@ -522,6 +545,8 @@ function Dashboard() {
       } else if (app.totalAssistanceRequested) {
         total += parseFloat(app.totalAssistanceRequested);
       }
+      // Pro-rated first-month rent is paid out of the same subsidy pool
+      total += parseFloat(app.proratedAmount) || 0;
     });
 
     return total;
@@ -711,7 +736,7 @@ function Dashboard() {
           if (key === 'submittedDate' && value) {
             value = new Date(value).toLocaleDateString();
           }
-          if (key === 'totalAssistanceRequested' || key === 'currentIncome' || key === 'monthlyRent') {
+          if (key === 'totalAssistanceRequested' || key === 'proratedAmount' || key === 'currentIncome' || key === 'monthlyRent') {
             value = `$${parseFloat(value || 0).toFixed(2)}`;
           }
           row[key] = value;
@@ -739,7 +764,7 @@ function Dashboard() {
           if (key === 'submittedDate' && value) {
             value = new Date(value).toLocaleDateString();
           }
-          if (key === 'totalAssistanceRequested' || key === 'currentIncome' || key === 'monthlyRent') {
+          if (key === 'totalAssistanceRequested' || key === 'proratedAmount' || key === 'currentIncome' || key === 'monthlyRent') {
             value = `$${parseFloat(value || 0).toFixed(2)}`;
           }
           row.push(value);
@@ -2098,6 +2123,16 @@ function Dashboard() {
                     />
                   </div>
                   <div>
+                    <label><strong>Pro-Rated Amount:</strong></label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.proratedAmount || ''}
+                      onChange={(e) => handleEditChange('proratedAmount', e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                    />
+                  </div>
+                  <div>
                     <label><strong>Total Assistance Requested:</strong></label>
                     <input
                       type="number"
@@ -2280,11 +2315,14 @@ function Dashboard() {
                 {parseFloat(selectedApplication.furnitureAmount) > 0 && (
                   <div><strong>Furniture Amount:</strong> ${parseFloat(selectedApplication.furnitureAmount).toFixed(2)}</div>
                 )}
+                {parseFloat(selectedApplication.proratedAmount) > 0 && (
+                  <div><strong>Pro-Rated Amount:</strong> ${parseFloat(selectedApplication.proratedAmount).toFixed(2)}</div>
+                )}
                 <div style={{ fontSize: '1.1rem' }}>
                   <strong>Total Assistance Requested:</strong>
                   <span style={{ color: '#1e40af', fontWeight: 'bold', marginLeft: '0.5rem' }}>
                     ${(() => {
-                      // Calculate total: rental assistance + security deposit (if included)
+                      // Calculate total: rental assistance + security deposit (if included) + pro-rated amount
                       let rental = 0;
                       if (selectedApplication.monthlyBreakdown && selectedApplication.monthlyBreakdown.length > 0) {
                         rental = selectedApplication.monthlyBreakdown.reduce((sum, month) => sum + (month.assistance || 0), 0);
@@ -2294,7 +2332,8 @@ function Dashboard() {
                       const secDep = selectedApplication.includeSecurityDeposit === 'Yes'
                         ? (parseFloat(selectedApplication.securityDeposit) || 0)
                         : 0;
-                      return (rental + secDep).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      const prorated = parseFloat(selectedApplication.proratedAmount) || 0;
+                      return (rental + secDep + prorated).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     })()}
                   </span>
                 </div>

@@ -60,6 +60,7 @@ function ApplicationForm() {
     leaseStartDate: '',
     leaseEndDate: '',
     rentDueDay: '1st',
+    proratedAmount: '',
 
     // Step-down plan (8 phases - supports up to 24 months)
     phases: [
@@ -121,12 +122,14 @@ function ApplicationForm() {
     });
 
     const securityAmount = formData.includeSecurityDeposit === 'Yes' ? securityDeposit : 0;
-    const totalAssistanceRequested = totalRentalAssistance + securityAmount;
+    const proratedAmount = parseFloat(formData.proratedAmount) || 0;
+    const totalAssistanceRequested = totalRentalAssistance + securityAmount + proratedAmount;
 
     return {
       totalMonths,
       totalRentalAssistance,
       securityAmount,
+      proratedAmount,
       totalAssistanceRequested
     };
   };
@@ -756,6 +759,20 @@ function ApplicationForm() {
                   onChange={handleInputChange}
                 />
               </div>
+
+              <div className="form-group">
+                <label>Pro-Rated Amount</label>
+                <input
+                  type="number"
+                  name="proratedAmount"
+                  value={formData.proratedAmount}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+                <small className="info-text">Pro-rated rent for a partial first month. Any amount entered here is added to the total Vista CAREs subsidy.</small>
+              </div>
             </div>
 
             <h2>Section G: Step-Down Assistance Plan</h2>
@@ -825,6 +842,12 @@ function ApplicationForm() {
                 <span>Security Deposit:</span>
                 <strong>${totals.securityAmount.toFixed(2)}</strong>
               </div>
+              {totals.proratedAmount > 0 && (
+                <div className="total-item">
+                  <span>Pro-Rated Amount:</span>
+                  <strong>${totals.proratedAmount.toFixed(2)}</strong>
+                </div>
+              )}
               <div className="total-item highlight">
                 <span>TOTAL ASSISTANCE REQUESTED:</span>
                 <strong>${totals.totalAssistanceRequested.toFixed(2)}</strong>
@@ -899,6 +922,12 @@ function ApplicationForm() {
                   <div className="total-item">
                     <span>Security Deposit:</span>
                     <strong>${parseFloat(formData.securityDeposit).toFixed(2)}</strong>
+                  </div>
+                )}
+                {totals.proratedAmount > 0 && (
+                  <div className="total-item">
+                    <span>Pro-Rated Amount:</span>
+                    <strong>${totals.proratedAmount.toFixed(2)}</strong>
                   </div>
                 )}
                 <div className="total-item highlight">
@@ -1013,6 +1042,9 @@ function ApplicationForm() {
                 <p><strong>Total Rental Assistance:</strong> ${totals.totalRentalAssistance.toFixed(2)}</p>
                 {formData.includeSecurityDeposit === 'Yes' && totals.securityAmount > 0 && (
                   <p><strong>Security Deposit:</strong> ${totals.securityAmount.toFixed(2)}</p>
+                )}
+                {totals.proratedAmount > 0 && (
+                  <p><strong>Pro-Rated Amount:</strong> ${totals.proratedAmount.toFixed(2)}</p>
                 )}
                 <p style={{ fontSize: '1.1rem', marginTop: '0.5rem' }}><strong>Total Assistance Requested:</strong> ${totals.totalAssistanceRequested.toFixed(2)}</p>
               </div>

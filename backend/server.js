@@ -240,6 +240,7 @@ async function initializeDatabase() {
       { name: 'w9_on_file', type: 'VARCHAR(10)' },
       { name: 'landlord_agreement_signed', type: 'VARCHAR(10)' },
       { name: 'furniture_amount', type: 'DECIMAL(10, 2)' },
+      { name: 'prorated_amount', type: 'DECIMAL(10, 2)' },
     ];
 
     for (const col of missingColumns) {
